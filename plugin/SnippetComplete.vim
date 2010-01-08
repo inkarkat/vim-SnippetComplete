@@ -30,6 +30,7 @@ if exists('g:loaded_SnippetComplete') || (v:version < 700)
 endif
 let g:loaded_SnippetComplete = 1
 
+let s:abbreviationExpressions = [['fullid', '\k*'], ['endid', '\%(\k\@!\S\)\+\k\?'], ['nonid', '\S\+\%(\k\@!\S\)\?']]
 function! s:DetermineBaseCol()
     " Locate the start of the abbreviation, searching for full-id, end-id and
     " non-id abbreviations. 
@@ -40,11 +41,17 @@ function! s:DetermineBaseCol()
     " combination, only freshly inserted text is matched if insertion started in
     " the current line, but all text in the line may match when inserted started
     " above the current line. 
-    let l:startCol = searchpos('\%(\%''[.\)\?\%>''[\%(\k*\|\%(\k\@!\S\)*\k\|\S*\%(\k\@!\S\)\)\%#', 'bn', line('.'))[1]
-    if l:startCol == 0
-	let l:startCol = col('.')
+    let l:baseColumns = []
+    for l:abbreviationExpression in s:abbreviationExpressions
+	let l:startCol = searchpos('\%(\%''[.\)\?\%>''[\%(' . l:abbreviationExpression[1] . '\)\%#', 'bn', line('.'))[1]
+	if l:startCol != 0
+	    call add(l:baseColumns, [l:abbreviationExpression[0], l:startCol])
+	endif
+    endfor
+    if empty(l:baseColumns)
+	call add(l:baseColumns, ['none', col('.')])
     endif
-    return l:startCol
+    return l:baseColumns
 endfunction
 
 function! s:GetAbbreviations()
@@ -79,16 +86,27 @@ function! s:GetAbbreviations()
     return l:globalMatches + l:localMatches
 endfunction
 
-function! s:SnippetComplete()
-    let l:baseCol = s:DetermineBaseCol()
-    let l:base = strpart(getline('.'), l:baseCol - 1, (col('.') - l:baseCol))
-"****D echomsg '****' l:baseCol l:base
+function! s:MatchAbbreviations( matches, baseCol )
+    let l:base = strpart(getline('.'), a:baseCol - 1, (col('.') - a:baseCol))
+"****D echomsg '****' a:baseCol l:base
 
-    let l:matches = s:GetAbbreviations()
-    if ! empty(l:base)
-	call filter(l:matches, 'v:val.word =~# ''^\V'' . ' . string(escape(l:base, '\')))
+    if empty(l:base)
+	return a:matches
+    else
+	return filter(copy(a:matches), 'v:val.word =~# ''^\V'' . ' . string(escape(l:base, '\')))
     endif
-    call complete(l:baseCol, l:matches)
+endfunction
+function! s:SnippetComplete()
+    let l:baseColumns = s:DetermineBaseCol()
+    let l:abbreviations = s:GetAbbreviations()
+echomsg '####' string(l:baseColumns)
+
+    for [l:abbreviationType, l:baseCol] in l:baseColumns
+	let l:matches = s:MatchAbbreviations(l:abbreviations, l:baseCol)
+	echomsg '****' l:abbreviationType string(l:matches)
+    endfor
+
+    "call complete(l:baseCol, l:matches)
     return ''
 endfunction
 
