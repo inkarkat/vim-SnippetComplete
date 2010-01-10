@@ -48,6 +48,7 @@ function! s:DetermineBaseCol()
 "   abbreviation types come first. Each element consists of a [abbreviationType,
 "   baseCol] tuple. 
 "*******************************************************************************
+echomsg '****' string(getpos("'["))
     " Locate possible start positions of the abbreviation, searching for
     " full-id, end-id and non-id abbreviations. 
     " If the insertion started in the current line, only consider characters
@@ -140,7 +141,7 @@ endfunction
 function! s:CompletionCompare( c1, c2 )
     return (a:c1.word ==# a:c2.word ? 0 : a:c1.word ># a:c2.word ? 1 : -1)
 endfunction
-function! s:SnippetComplete()
+function! SnippetComplete#SnippetComplete( findstart, base )
     let l:completionsByBaseCol = s:GetAbbreviationCompletions()
     let l:baseColumns = reverse(sort(keys(l:completionsByBaseCol)))
 
@@ -150,7 +151,7 @@ function! s:SnippetComplete()
     return ''
 endfunction
 
-inoremap <silent> <Plug>SnippetComplete <C-r>=<SID>SnippetComplete()<CR>
+inoremap <silent> <Plug>SnippetComplete <C-\><C-o>:set completefunc=SnippetComplete#SnippetComplete<CR><C-x><C-u>
 if ! hasmapto('<Plug>SnippetComplete', 'i')
     imap <C-x><C-]> <Plug>SnippetComplete
 endif
