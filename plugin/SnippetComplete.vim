@@ -217,6 +217,13 @@ augroup SnippetComplete
     autocmd InsertEnter * let s:lastInsertStartPosition = getpos('.')
 augroup END
 
+" Triggering a completion typically inserts the first match and thus
+" advances the cursor. We need the original cursor position to detect the
+" repetition of the completion at the same position, in case the user wants to
+" use another completion base. When a repeat of completion is triggered, the
+" popup menu is visible, so this is used to detect this situation and reset any
+" selected match before re-triggering the completion. XXX: This fails when there
+" is only one completion match, or when the popup menu isn't enabled. 
 inoremap <silent> <Plug>SnippetComplete <C-r>=pumvisible()?"\<lt>C-e>":""<CR><C-r>=<SID>SnippetComplete()<CR>
 if ! hasmapto('<Plug>SnippetComplete', 'i')
     imap <C-x><C-]> <Plug>SnippetComplete
