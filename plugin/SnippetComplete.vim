@@ -48,20 +48,17 @@ function! s:DetermineBaseCol()
 "   abbreviation types come first. Each element consists of a [abbreviationType,
 "   baseCol] tuple. 
 "*******************************************************************************
-echomsg '****' string(getpos("'["))
     " Locate possible start positions of the abbreviation, searching for
     " full-id, end-id and non-id abbreviations. 
     " If the insertion started in the current line, only consider characters
     " that were inserted by the last insertion. For this, we match with the
-    " start-of-insert mark '[; This mark may (or not) be in the current line,
-    " but the matched text must definitely be somewhere after it. With this
-    " combination, only freshly inserted text is matched if insertion started in
-    " the current line, but all text in the line may match when inserted started
-    " above the current line. 
-    let l:insertedTextExpr = '\%(\%''[.\)\?\%>''[.*\%#'
+    " stored start position of the current insert mode, if insertion started in
+    " the current line. The matched text must definitely be somewhere after it,
+    " but need not start with the start-of-insert position. 
+    let l:insertedTextExpr = (line('.') == s:lastInsertStartPosition[1] ? '\%(\%' . s:lastInsertStartPosition[2] . 'c.\)\?\%>' . s:lastInsertStartPosition[2] . 'c.*\%#\&' : '')
     let l:baseColumns = []
     for l:abbreviationExpression in s:abbreviationExpressions
-	let l:startCol = searchpos(l:insertedTextExpr . '\&' . '\%(' . l:abbreviationExpression[1] . '\)\%#', 'bn', line('.'))[1]
+	let l:startCol = searchpos(l:insertedTextExpr . '\%(' . l:abbreviationExpression[1] . '\)\%#', 'bn', line('.'))[1]
 	if l:startCol != 0
 	    call add(l:baseColumns, [l:abbreviationExpression[0], l:startCol])
 	endif
@@ -141,7 +138,7 @@ endfunction
 function! s:CompletionCompare( c1, c2 )
     return (a:c1.word ==# a:c2.word ? 0 : a:c1.word ># a:c2.word ? 1 : -1)
 endfunction
-function! SnippetComplete#SnippetComplete( findstart, base )
+function! s:SnippetComplete()
     let l:completionsByBaseCol = s:GetAbbreviationCompletions()
     let l:baseColumns = reverse(sort(keys(l:completionsByBaseCol)))
 
@@ -151,7 +148,20 @@ function! SnippetComplete#SnippetComplete( findstart, base )
     return ''
 endfunction
 
-inoremap <silent> <Plug>SnippetComplete <C-\><C-o>:set completefunc=SnippetComplete#SnippetComplete<CR><C-x><C-u>
+" In order to determine the base column of the completion, we need the start
+" position of the current insertion. Mark '[ isn't set until we (at least
+" temporarily via i_CTRL-O) move out of insert mode; however doing so then
+" prevents the completed abbreviation from being expanded: The insertion was
+" interrupted, and Vim doesn't consider the full expanded abbreviation to have
+" been inserted in the current insert mode. 
+" To work around this, we use an autocmd to capture the cursor position whenever
+" insert mode is entered. 
+augroup SnippetComplete
+    autocmd!
+    autocmd InsertEnter * let s:lastInsertStartPosition = getpos('.')
+augroup END
+
+inoremap <silent> <Plug>SnippetComplete <C-r>=<SID>SnippetComplete()<CR>
 if ! hasmapto('<Plug>SnippetComplete', 'i')
     imap <C-x><C-]> <Plug>SnippetComplete
 endif
