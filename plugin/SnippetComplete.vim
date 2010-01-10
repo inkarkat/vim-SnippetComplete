@@ -101,8 +101,11 @@ function! s:GetAbbreviations()
     return l:globalMatches + l:localMatches
 endfunction
 
+function! s:GetBase( baseCol, cursorCol )
+    return strpart(getline('.'), a:baseCol - 1, (a:cursorCol - a:baseCol))
+endfunction
 function! s:MatchAbbreviations( abbreviations, abbreviationFilterExpr, baseCol )
-    let l:base = strpart(getline('.'), a:baseCol - 1, (col('.') - a:baseCol))
+    let l:base = s:GetBase(a:baseCol, col('.'))
 "****D echomsg '****' a:baseCol l:base
 
     let l:filter = 'v:val.word =~#' . string(a:abbreviationFilterExpr)
@@ -138,13 +141,66 @@ endfunction
 function! s:CompletionCompare( c1, c2 )
     return (a:c1.word ==# a:c2.word ? 0 : a:c1.word ># a:c2.word ? 1 : -1)
 endfunction
-function! s:SnippetComplete()
-    let l:completionsByBaseCol = s:GetAbbreviationCompletions()
-    let l:baseColumns = reverse(sort(keys(l:completionsByBaseCol)))
 
-    if ! empty(l:baseColumns)
-	call complete(l:baseColumns[0], sort(l:completionsByBaseCol[l:baseColumns[0]], 's:CompletionCompare'))
+function! s:RecordPosition()
+    " The position record consists of the current cursor position, the buffer,
+    " window and tab page number and the buffer's current change state. 
+    " As soon as you make an edit, move to another buffer or even the same
+    " buffer in another tab page or window (or as a minor side effect just close
+    " a window above the current), the position changes. 
+    return getpos('.') + [bufnr(''), winnr(), tabpagenr()]
+endfunction
+let s:lastCompletionsByBaseCol = {}
+let s:nextBaseIdx = 0
+let s:lastCompletePosition = []
+function! s:SnippetComplete()
+"****D echomsg '****' string(s:RecordPosition())
+    let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
+    if s:lastCompletePosition == s:RecordPosition() && l:baseNum > 1
+	" The Snippet complete mapping is being repeatedly executed on the same
+	" position, and we have multiple completion bases. Use the next/first
+	" base from the cached completions. 
+	let l:baseIdx = s:nextBaseIdx
+    else
+	" This is a new completion. 
+	let s:lastCompletionsByBaseCol = s:GetAbbreviationCompletions()
+
+	let l:baseIdx = 0
+	let s:lastCompletePosition = s:RecordPosition()
+	let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
     endif
+
+    " Multiple bases are presented from shortest base (i.e. largest base column)
+    " to longest base. Full-id abbreviations have the most restrictive pattern
+    " and thus always generate the shortest bases; end-id and non-id
+    " abbreviations accept more character classes and can result in longer
+    " bases. 
+    let l:baseColumns = reverse(sort(keys(s:lastCompletionsByBaseCol)))
+
+    if l:baseNum > 0
+	" Setting the completions typically inserts the first match and thus
+	" advances the cursor. We need the original cursor position to resolve
+	" the next base(s) only up to what has actually been entered. 
+	let l:cursorCol = col('.')
+
+	" Show the completions for the current base. 
+	call complete(l:baseColumns[l:baseIdx], sort(s:lastCompletionsByBaseCol[l:baseColumns[l:baseIdx]], 's:CompletionCompare'))
+
+	if l:baseNum > 1
+	    " There are multiple bases; make subsequent invocations cycle
+	    " through them.  
+	    let s:nextBaseIdx = (l:baseIdx < l:baseNum - 1 ? l:baseIdx + 1 : 0)
+
+	    " Indicate to the user that additional bases exist, and offer a
+	    " preview of the next one. 
+	    let l:nextBase = s:GetBase(l:baseColumns[s:nextBaseIdx], l:cursorCol)
+	    echohl Question
+	    echo printf('base %d of %d; next: ', (l:baseIdx + 1), l:baseNum)
+	    echohl None
+	    echon l:nextBase
+	endif
+    endif
+
     return ''
 endfunction
 
@@ -161,7 +217,7 @@ augroup SnippetComplete
     autocmd InsertEnter * let s:lastInsertStartPosition = getpos('.')
 augroup END
 
-inoremap <silent> <Plug>SnippetComplete <C-r>=<SID>SnippetComplete()<CR>
+inoremap <silent> <Plug>SnippetComplete <C-r>=pumvisible()?"\<lt>C-e>":""<CR><C-r>=<SID>SnippetComplete()<CR>
 if ! hasmapto('<Plug>SnippetComplete', 'i')
     imap <C-x><C-]> <Plug>SnippetComplete
 endif
