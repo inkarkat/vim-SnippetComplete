@@ -152,11 +152,12 @@ function! s:RecordPosition()
 endfunction
 let s:lastCompletionsByBaseCol = {}
 let s:nextBaseIdx = 0
-let s:lastCompletePosition = []
+let s:initialCompletePosition = []
+let s:lastCompleteEndPosition = []
 function! s:SnippetComplete()
 "****D echomsg '****' string(s:RecordPosition())
     let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
-    if s:lastCompletePosition == s:RecordPosition() && l:baseNum > 1
+    if s:initialCompletePosition == s:RecordPosition() && l:baseNum > 1
 	" The Snippet complete mapping is being repeatedly executed on the same
 	" position, and we have multiple completion bases. Use the next/first
 	" base from the cached completions. 
@@ -166,8 +167,9 @@ function! s:SnippetComplete()
 	let s:lastCompletionsByBaseCol = s:GetAbbreviationCompletions()
 
 	let l:baseIdx = 0
-	let s:lastCompletePosition = s:RecordPosition()
 	let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
+	let s:initialCompletePosition = s:RecordPosition()
+	let s:initialCompletionCol = col('.')	" Note: The column is also contained in s:initialCompletePosition, but a separate variable is more expressive. 
     endif
 
     " Multiple bases are presented from shortest base (i.e. largest base column)
@@ -178,13 +180,9 @@ function! s:SnippetComplete()
     let l:baseColumns = reverse(sort(keys(s:lastCompletionsByBaseCol)))
 
     if l:baseNum > 0
-	" Setting the completions typically inserts the first match and thus
-	" advances the cursor. We need the original cursor position to resolve
-	" the next base(s) only up to what has actually been entered. 
-	let l:cursorCol = col('.')
-
 	" Show the completions for the current base. 
 	call complete(l:baseColumns[l:baseIdx], sort(s:lastCompletionsByBaseCol[l:baseColumns[l:baseIdx]], 's:CompletionCompare'))
+	let s:lastCompleteEndPosition = s:RecordPosition()
 
 	if l:baseNum > 1
 	    " There are multiple bases; make subsequent invocations cycle
@@ -193,7 +191,11 @@ function! s:SnippetComplete()
 
 	    " Indicate to the user that additional bases exist, and offer a
 	    " preview of the next one. 
-	    let l:nextBase = s:GetBase(l:baseColumns[s:nextBaseIdx], l:cursorCol)
+	    " Note: Setting the completions typically inserts the first match
+	    " and thus advances the cursor. We need the initial cursor position
+	    " to resolve the next base(s) only up to what has actually been
+	    " entered. 
+	    let l:nextBase = s:GetBase(l:baseColumns[s:nextBaseIdx], s:initialCompletionCol)
 	    echohl Question
 	    echo printf('base %d of %d; next: ', (l:baseIdx + 1), l:baseNum)
 	    echohl None
@@ -202,6 +204,23 @@ function! s:SnippetComplete()
     endif
 
     return ''
+endfunction
+function! s:PreSnippetCompleteExpr()
+    " To be able to detect a repeat completion, we need to return the cursor to
+    " the initial completion position, but setting the completions typically
+    " inserts the first match and thus advances the cursor. That resulting
+    " completion end position (after the completions are shown) is recorded in
+    " s:lastCompleteEndPosition. This position can change if the user selects
+    " another completion match (via CTRL-N) that has a different length, and
+    " only then re-triggers the completion for the next abbreviation base. 
+    " We can still handle this situation by checking for an active popup menu;
+    " that means that (presumably, could be from another completion type)
+    " another abbreviation completion had been triggered. 
+    " To return the cursor to the inital completion position, CTRL-E is used to
+    " end the completion; this may only not work when 'completeopt' contains
+    " "longest" (Vim returns to what was typed or longest common string). 
+    let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
+    return (pumvisible() || s:lastCompleteEndPosition == s:RecordPosition() && l:baseNum > 1 ? "\<C-e>" : '')
 endfunction
 
 " In order to determine the base column of the completion, we need the start
@@ -220,11 +239,10 @@ augroup END
 " Triggering a completion typically inserts the first match and thus
 " advances the cursor. We need the original cursor position to detect the
 " repetition of the completion at the same position, in case the user wants to
-" use another completion base. When a repeat of completion is triggered, the
-" popup menu is visible, so this is used to detect this situation and reset any
-" selected match before re-triggering the completion. XXX: This fails when there
-" is only one completion match, or when the popup menu isn't enabled. 
-inoremap <silent> <Plug>SnippetComplete <C-r>=pumvisible()?"\<lt>C-e>":""<CR><C-r>=<SID>SnippetComplete()<CR>
+" use another completion base. The reset of the cursor position is done in a
+" preceding expression mapping, because it is not allowed to change the cursor
+" position from within the actual s:SnippetComplete() expression. 
+inoremap <silent> <Plug>SnippetComplete <C-r>=<SID>PreSnippetCompleteExpr()<CR><C-r>=<SID>SnippetComplete()<CR>
 if ! hasmapto('<Plug>SnippetComplete', 'i')
     imap <C-x><C-]> <Plug>SnippetComplete
 endif
