@@ -1,4 +1,5 @@
-" TODO: summary
+" SnippetComplete.vim: Insert mode completion that completes defined
+" abbreviations. 
 "
 " DESCRIPTION:
 " USAGE:
@@ -17,13 +18,15 @@
 " TODO:
 "   - Getting and sorting of matches when 'ignorecase' is on. 
 "
-" Copyright: (C) 2009 by Ingo Karkat
+" Copyright: (C) 2010 by Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
-"	001	00-Jan-2009	file creation
+"	002	12-Jan-2010	Completed implementation for defined
+"				:iabbrev's. 
+"	001	08-Jan-2010	file creation
 
 " Avoid installing twice or when in unsupported Vim version. 
 if exists('g:loaded_SnippetComplete') || (v:version < 700)
@@ -142,6 +145,35 @@ function! s:CompletionCompare( c1, c2 )
     return (a:c1.word ==# a:c2.word ? 0 : a:c1.word ># a:c2.word ? 1 : -1)
 endfunction
 
+function! s:SetupCmdlineForBaseMessage()
+    " The message about multiple bases should appear in the same way as Vim's
+    " built-in "match m of n" completion mode messages. Unfortunately, an active
+    " 'showmode' setting may prevent the user from seeing the message in a
+    " one-line command line. Thus, we temporarily disable the 'showmode'
+    " setting. 
+    if &showmode && &cmdheight == 1
+	set noshowmode
+
+	" Use a single-use autocmd to restore the 'showmode' setting when the
+	" cursor is moved (this already happens when a next match is selected,
+	" but then the "match m of n" message takes over) or insert mode is
+	" left. 
+	augroup SnippetCompleteTemporaryNoShowMode
+	    autocmd!
+	    autocmd CursorMovedI,InsertLeave * set showmode | autocmd! SnippetCompleteTemporaryNoShowMode
+	augroup END
+    endif
+endfunction
+function! s:ShowMultipleBasesMessage( nextIdx, baseNum, nextBase )
+    call s:SetupCmdlineForBaseMessage()
+
+    echohl ModeMsg
+    echo '-- Snippet completion (^X^]) '
+    echohl Question
+    echon printf('base %d of %d; next: ', a:nextIdx, a:baseNum)
+    echohl None
+    echon a:nextBase
+endfunction
 function! s:RecordPosition()
     " The position record consists of the current cursor position, the buffer,
     " window and tab page number and the buffer's current change state. 
@@ -189,17 +221,15 @@ function! s:SnippetComplete()
 	    " through them.  
 	    let s:nextBaseIdx = (l:baseIdx < l:baseNum - 1 ? l:baseIdx + 1 : 0)
 
-	    " Indicate to the user that additional bases exist, and offer a
-	    " preview of the next one. 
 	    " Note: Setting the completions typically inserts the first match
 	    " and thus advances the cursor. We need the initial cursor position
 	    " to resolve the next base(s) only up to what has actually been
 	    " entered. 
 	    let l:nextBase = s:GetBase(l:baseColumns[s:nextBaseIdx], s:initialCompletionCol)
-	    echohl Question
-	    echo printf('base %d of %d; next: ', (l:baseIdx + 1), l:baseNum)
-	    echohl None
-	    echon l:nextBase
+
+	    " Indicate to the user that additional bases exist, and offer a
+	    " preview of the next one. 
+	    call s:ShowMultipleBasesMessage(l:baseIdx + 1, l:baseNum, l:nextBase)
 	endif
     endif
 
