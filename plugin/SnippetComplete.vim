@@ -1,22 +1,7 @@
 " SnippetComplete.vim: Insert mode completion that completes defined
 " abbreviations. 
 "
-" DESCRIPTION:
-" USAGE:
-" INSTALLATION:
-"   Put the script into your user or system Vim plugin directory (e.g.
-"   ~/.vim/plugin). 
-
 " DEPENDENCIES:
-"   - Requires Vim 7.0 or higher. 
-
-" CONFIGURATION:
-" INTEGRATION:
-" LIMITATIONS:
-" ASSUMPTIONS:
-" KNOWN PROBLEMS:
-" TODO:
-"   - Getting and sorting of matches when 'ignorecase' is on. 
 "
 " Copyright: (C) 2010 by Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
@@ -24,7 +9,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
-"	002	12-Jan-2010	Completed implementation for defined
+"   1.00.002	12-Jan-2010	Completed implementation for defined
 "				:iabbrev's. 
 "	001	08-Jan-2010	file creation
 
@@ -168,7 +153,7 @@ function! s:ShowMultipleBasesMessage( nextIdx, baseNum, nextBase )
     call s:SetupCmdlineForBaseMessage()
 
     echohl ModeMsg
-    echo '-- Snippet completion (^X^]) '
+    echo '-- Snippet completion (^X]^N^P) '
     echohl Question
     echon printf('base %d of %d; next: ', a:nextIdx, a:baseNum)
     echohl None
@@ -274,7 +259,7 @@ augroup END
 " position from within the actual s:SnippetComplete() expression. 
 inoremap <silent> <Plug>SnippetComplete <C-r>=<SID>PreSnippetCompleteExpr()<CR><C-r>=<SID>SnippetComplete()<CR>
 if ! hasmapto('<Plug>SnippetComplete', 'i')
-    imap <C-x><C-]> <Plug>SnippetComplete
+    imap <C-x>] <Plug>SnippetComplete
 endif
 
 " vim: set sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
