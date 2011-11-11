@@ -236,7 +236,5 @@ function! SnippetComplete#PreSnippetCompleteExpr()
     let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
     return (pumvisible() || s:lastCompleteEndPosition == s:RecordPosition() && l:baseNum > 1 ? "\<C-e>" : '')
 endfunction
-function! SnippetComplete#RecordInsertStartPosition()
-endfunction
 
 " vim: set sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
