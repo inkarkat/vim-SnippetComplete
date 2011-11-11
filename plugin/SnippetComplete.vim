@@ -5,12 +5,14 @@
 "   - Requires Vim 7.0 or higher. 
 "   - SnippetComplete.vim autoload script. 
 "
-" Copyright: (C) 2010 by Ingo Karkat
+" Copyright: (C) 2010-2011 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"   1.02.004	03-Oct-2011	Change <Plug>-mapping to <Plug>(SnippetComplete)
+"				for consistency with my other completion plugins. 
 "   1.01.003	25-Sep-2010	Moved functions from plugin to separate autoload
 "				script. 
 "   1.00.002	12-Jan-2010	Completed implementation for defined
@@ -42,9 +44,9 @@ augroup END
 " use another completion base. The reset of the cursor position is done in a
 " preceding expression mapping, because it is not allowed to change the cursor
 " position from within the actual SnippetComplete#SnippetComplete() expression. 
-inoremap <silent> <Plug>SnippetComplete <C-r>=SnippetComplete#PreSnippetCompleteExpr()<CR><C-r>=SnippetComplete#SnippetComplete()<CR>
-if ! hasmapto('<Plug>SnippetComplete', 'i')
-    imap <C-x>] <Plug>SnippetComplete
+inoremap <silent> <Plug>(SnippetComplete) <C-r>=SnippetComplete#PreSnippetCompleteExpr()<CR><C-r>=SnippetComplete#SnippetComplete()<CR>
+if ! hasmapto('<Plug>(SnippetComplete)', 'i')
+    imap <C-x>] <Plug>(SnippetComplete)
 endif
 
 " vim: set sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
