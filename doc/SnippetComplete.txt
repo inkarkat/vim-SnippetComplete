@@ -67,7 +67,7 @@ If you want to use a different mapping, map your keys to the
 <Plug>SnippetComplete mapping target _before_ sourcing this script (e.g. in
 your |vimrc|). 
 For example, to use CTRL-X <Tab>, use this: >
-    imap <C-x><Tab> <Plug>SnippetComplete
+    imap <C-x><Tab> <Plug>(SnippetComplete)
 <
 ==============================================================================
 INTEGRATION					 *SnippetComplete-integration*
@@ -79,6 +79,10 @@ It is planned to extend the completion to snippets for the snipMate plugin
 LIMITATIONS					 *SnippetComplete-limitations*
 
 KNOWN PROBLEMS				      *SnippetComplete-known-problems*
+
+- When <CR> is :map-expr to <C-Y> when pumvisible() to accept the current
+  entry, and there's additional processing after <C-Y> (in my case, <C-\><C-o>
+  to call a function) the completed abbreviation is not expanded any more. 
 
 TODO							*SnippetComplete-todo*
 
