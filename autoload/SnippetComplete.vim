@@ -1,21 +1,21 @@
 " SnippetComplete.vim: Insert mode completion that completes defined
-" abbreviations. 
+" abbreviations.
 "
 " DEPENDENCIES:
 "
 " Copyright: (C) 2010 Ingo Karkat
-"   The VIM LICENSE applies to this script; see ':help copyright'. 
+"   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
-" REVISION	DATE		REMARKS 
+" REVISION	DATE		REMARKS
 "   1.01.001	25-Sep-2010	Moved functions from plugin to separate autoload
-"				script. 
+"				script.
 "				The autocmd uses a global variable so that it
 "				can pass the
 "				g:SnippetComplete_LastInsertStartPosition to the
 "				autoload script's functions without loading the
-"				autoload script on the first InsertEnter. 
+"				autoload script on the first InsertEnter.
 "			    	file creation
 
 let s:abbreviationExpressions = [['fullid', '\k\+'], ['endid', '\%(\k\@!\S\)\+\k\?'], ['nonid', '\S\+\%(\k\@!\S\)\?']]
@@ -23,25 +23,25 @@ function! s:DetermineBaseCol()
 "*******************************************************************************
 "* PURPOSE:
 "   Check the text before the cursor to determine possible base columns where
-"   abbreviations of the various types may start. 
+"   abbreviations of the various types may start.
 "* ASSUMPTIONS / PRECONDITIONS:
-"   None. 
+"   None.
 "* EFFECTS / POSTCONDITIONS:
-"   None. 
+"   None.
 "* INPUTS:
-"   None. 
-"* RETURN VALUES: 
+"   None.
+"* RETURN VALUES:
 "   List of possible base columns, more stringently defined and shorter
 "   abbreviation types come first. Each element consists of a [abbreviationType,
-"   baseCol] tuple. 
+"   baseCol] tuple.
 "*******************************************************************************
     " Locate possible start positions of the abbreviation, searching for
-    " full-id, end-id and non-id abbreviations. 
+    " full-id, end-id and non-id abbreviations.
     " If the insertion started in the current line, only consider characters
     " that were inserted by the last insertion. For this, we match with the
     " stored start position of the current insert mode, if insertion started in
     " the current line. The matched text must definitely be somewhere after it,
-    " but need not start with the start-of-insert position. 
+    " but need not start with the start-of-insert position.
     let l:insertedTextExpr = (line('.') == g:SnippetComplete_LastInsertStartPosition[1] ? '\%(\%' . g:SnippetComplete_LastInsertStartPosition[2] . 'c.\)\?\%>' . g:SnippetComplete_LastInsertStartPosition[2] . 'c.*\%#\&' : '')
     let l:baseColumns = []
     for l:abbreviationExpression in s:abbreviationExpressions
@@ -60,7 +60,7 @@ function! s:GetAbbreviations()
     let l:abbreviations = ''
     let l:save_verbose = &verbose
     try
-	set verbose=0	" Do not include any "Last set from" info. 
+	set verbose=0	" Do not include any "Last set from" info.
 	redir => l:abbreviations
 	silent iabbrev
     finally
@@ -77,11 +77,11 @@ function! s:GetAbbreviations()
 	    call add((l:flags =~# '@' ? l:localMatches : l:globalMatches), l:match)
 	endfor
     catch /^Vim\%((\a\+)\)\=:E688/	" catch error E688: More targets than List items
-	" When there are no abbreviations, Vim returns "No abbreviation found". 
+	" When there are no abbreviations, Vim returns "No abbreviation found".
     endtry
 
     " A buffer-local abbreviation overrides an existing global abbreviation with
-    " the same {lhs}. 
+    " the same {lhs}.
     for l:localWord in map(copy(l:localMatches), 'v:val.word')
 	call filter(l:globalMatches, 'v:val.word !=# ' . string(l:localWord))
     endfor
@@ -97,7 +97,7 @@ function! s:MatchAbbreviations( abbreviations, abbreviationFilterExpr, baseCol )
 
     let l:filter = 'v:val.word =~#' . string(a:abbreviationFilterExpr)
     if ! empty(l:base)
-	let l:filter .= ' && v:val.word =~# ''^\V'' . ' . string(escape(l:base, '\'))
+	let l:filter .= ' && strpart(v:val.word, 0, ' . len(l:base) . ') ==# ' . string(l:base)
     endif
     return filter(copy(a:abbreviations), l:filter)
 endfunction
@@ -134,14 +134,14 @@ function! s:SetupCmdlineForBaseMessage()
     " built-in "match m of n" completion mode messages. Unfortunately, an active
     " 'showmode' setting may prevent the user from seeing the message in a
     " one-line command line. Thus, we temporarily disable the 'showmode'
-    " setting. 
+    " setting.
     if &showmode && &cmdheight == 1
 	set noshowmode
 
 	" Use a single-use autocmd to restore the 'showmode' setting when the
 	" cursor is moved (this already happens when a next match is selected,
 	" but then the "match m of n" message takes over) or insert mode is
-	" left. 
+	" left.
 	augroup SnippetCompleteTemporaryNoShowMode
 	    autocmd!
 	    autocmd CursorMovedI,InsertLeave * set showmode | autocmd! SnippetCompleteTemporaryNoShowMode
@@ -160,10 +160,10 @@ function! s:ShowMultipleBasesMessage( nextIdx, baseNum, nextBase )
 endfunction
 function! s:RecordPosition()
     " The position record consists of the current cursor position, the buffer,
-    " window and tab page number and the buffer's current change state. 
+    " window and tab page number and the buffer's current change state.
     " As soon as you make an edit, move to another buffer or even the same
     " buffer in another tab page or window (or as a minor side effect just close
-    " a window above the current), the position changes. 
+    " a window above the current), the position changes.
     return getpos('.') + [bufnr(''), winnr(), tabpagenr()]
 endfunction
 let s:lastCompletionsByBaseCol = {}
@@ -176,43 +176,43 @@ function! SnippetComplete#SnippetComplete()
     if s:initialCompletePosition == s:RecordPosition() && l:baseNum > 1
 	" The Snippet complete mapping is being repeatedly executed on the same
 	" position, and we have multiple completion bases. Use the next/first
-	" base from the cached completions. 
+	" base from the cached completions.
 	let l:baseIdx = s:nextBaseIdx
     else
-	" This is a new completion. 
+	" This is a new completion.
 	let s:lastCompletionsByBaseCol = s:GetAbbreviationCompletions()
 
 	let l:baseIdx = 0
 	let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
 	let s:initialCompletePosition = s:RecordPosition()
-	let s:initialCompletionCol = col('.')	" Note: The column is also contained in s:initialCompletePosition, but a separate variable is more expressive. 
+	let s:initialCompletionCol = col('.')	" Note: The column is also contained in s:initialCompletePosition, but a separate variable is more expressive.
     endif
 
     " Multiple bases are presented from shortest base (i.e. largest base column)
     " to longest base. Full-id abbreviations have the most restrictive pattern
     " and thus always generate the shortest bases; end-id and non-id
     " abbreviations accept more character classes and can result in longer
-    " bases. 
+    " bases.
     let l:baseColumns = reverse(sort(keys(s:lastCompletionsByBaseCol)))
 
     if l:baseNum > 0
-	" Show the completions for the current base. 
+	" Show the completions for the current base.
 	call complete(l:baseColumns[l:baseIdx], sort(s:lastCompletionsByBaseCol[l:baseColumns[l:baseIdx]], 's:CompletionCompare'))
 	let s:lastCompleteEndPosition = s:RecordPosition()
 
 	if l:baseNum > 1
 	    " There are multiple bases; make subsequent invocations cycle
-	    " through them.  
+	    " through them.
 	    let s:nextBaseIdx = (l:baseIdx < l:baseNum - 1 ? l:baseIdx + 1 : 0)
 
 	    " Note: Setting the completions typically inserts the first match
 	    " and thus advances the cursor. We need the initial cursor position
 	    " to resolve the next base(s) only up to what has actually been
-	    " entered. 
+	    " entered.
 	    let l:nextBase = s:GetBase(l:baseColumns[s:nextBaseIdx], s:initialCompletionCol)
 
 	    " Indicate to the user that additional bases exist, and offer a
-	    " preview of the next one. 
+	    " preview of the next one.
 	    call s:ShowMultipleBasesMessage(l:baseIdx + 1, l:baseNum, l:nextBase)
 	endif
     endif
@@ -226,13 +226,13 @@ function! SnippetComplete#PreSnippetCompleteExpr()
     " completion end position (after the completions are shown) is recorded in
     " s:lastCompleteEndPosition. This position can change if the user selects
     " another completion match (via CTRL-N) that has a different length, and
-    " only then re-triggers the completion for the next abbreviation base. 
+    " only then re-triggers the completion for the next abbreviation base.
     " We can still handle this situation by checking for an active popup menu;
     " that means that (presumably, could be from another completion type)
-    " another abbreviation completion had been triggered. 
+    " another abbreviation completion had been triggered.
     " To return the cursor to the inital completion position, CTRL-E is used to
     " end the completion; this may only not work when 'completeopt' contains
-    " "longest" (Vim returns to what was typed or longest common string). 
+    " "longest" (Vim returns to what was typed or longest common string).
     let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
     return (pumvisible() || s:lastCompleteEndPosition == s:RecordPosition() && l:baseNum > 1 ? "\<C-e>" : '')
 endfunction
