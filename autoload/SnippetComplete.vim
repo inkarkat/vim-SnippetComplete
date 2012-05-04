@@ -9,6 +9,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.00.003	05-May-2012	Rewrite s:RegistryTypeCompare() so that it
+"				doesn't need to access
+"				g:SnippetComplete_Registry.
 "   2.00.002	03-May-2012	Generalize for completing other types of
 "				snippets (e.g. from snipMate):
 "				Introduce g:SnippetComplete_Registry for snippet
@@ -28,12 +31,12 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 function! s:RegistryTypeCompare( c1, c2 )
-    let l:p1 = g:SnippetComplete_Registry[a:c1].priority
-    let l:p2 = g:SnippetComplete_Registry[a:c2].priority
+    let l:p1 = a:c1[1].priority
+    let l:p2 = a:c2[1].priority
     return (l:p1 ==# l:p2 ? 0 : l:p1 ># l:p2 ? 1 : -1)
 endfunction
 function! s:GetSortedRegistryTypes()
-    return sort(keys(g:SnippetComplete_Registry), 's:RegistryTypeCompare')
+    return map(sort(items(g:SnippetComplete_Registry), 's:RegistryTypeCompare'), 'v:val[0]')
 endfunction
 function! s:GetSnippetPatternsPerType()
     return map(
