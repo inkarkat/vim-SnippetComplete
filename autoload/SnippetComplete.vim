@@ -1,14 +1,21 @@
 " SnippetComplete.vim: Insert mode completion that completes defined
-" abbreviations.
+" abbreviations and snippets.
 "
 " DEPENDENCIES:
 "
-" Copyright: (C) 2010 Ingo Karkat
+" Copyright: (C) 2010-2012 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.00.002	03-May-2012	Generalize for completing other types of
+"				snippets (e.g. from snipMate):
+"				Introduce g:SnippetComplete_Registry for snippet
+"				types.
+"				Move resolution of Vim abbreviations to
+"				SnippetComplete/Abbreviations.vim autoload
+"				script.
 "   1.01.001	25-Sep-2010	Moved functions from plugin to separate autoload
 "				script.
 "				The autocmd uses a global variable so that it
@@ -17,13 +24,42 @@
 "				autoload script's functions without loading the
 "				autoload script on the first InsertEnter.
 "			    	file creation
+let s:save_cpo = &cpo
+set cpo&vim
 
-let s:abbreviationExpressions = [['fullid', '\k\+'], ['endid', '\%(\k\@!\S\)\+\k\?'], ['nonid', '\S\+\%(\k\@!\S\)\?']]
+function! s:RegistryTypeCompare( c1, c2 )
+    let l:p1 = g:SnippetComplete_Registry[a:c1].priority
+    let l:p2 = g:SnippetComplete_Registry[a:c2].priority
+    return (l:p1 ==# l:p2 ? 0 : l:p1 ># l:p2 ? 1 : -1)
+endfunction
+function! s:GetSortedRegistryTypes()
+    return sort(keys(g:SnippetComplete_Registry), 's:RegistryTypeCompare')
+endfunction
+function! s:GetSnippetPatternsPerType()
+    return map(
+    \   s:GetSortedRegistryTypes(),
+    \	'[v:val, g:SnippetComplete_Registry[v:val].pattern]'
+    \)
+endfunction
+function! s:GetSnippets( type )
+    if a:type ==# 'none'
+	" There is no base, so the snippet type can not be determined. Ask all
+	" registered types for their snippets.
+	let l:snippets = []
+	for l:type in s:GetSortedRegistryTypes()
+	    let l:snippets += call(g:SnippetComplete_Registry[l:type].generator, [])
+	endfor
+	return l:snippets
+    else
+	return call(g:SnippetComplete_Registry[a:type].generator, [])
+    endif
+endfunction
+
 function! s:DetermineBaseCol()
 "*******************************************************************************
 "* PURPOSE:
 "   Check the text before the cursor to determine possible base columns where
-"   abbreviations of the various types may start.
+"   snippets of the various types may start.
 "* ASSUMPTIONS / PRECONDITIONS:
 "   None.
 "* EFFECTS / POSTCONDITIONS:
@@ -31,23 +67,32 @@ function! s:DetermineBaseCol()
 "* INPUTS:
 "   None.
 "* RETURN VALUES:
-"   List of possible base columns, more stringently defined and shorter
-"   abbreviation types come first. Each element consists of a [abbreviationType,
-"   baseCol] tuple.
+"   List of possible base columns, more stringently defined and shorter snippet
+"   types come first. Each element consists of a [type, baseCol] tuple.
 "*******************************************************************************
-    " Locate possible start positions of the abbreviation, searching for
-    " full-id, end-id and non-id abbreviations.
-    " If the insertion started in the current line, only consider characters
-    " that were inserted by the last insertion. For this, we match with the
-    " stored start position of the current insert mode, if insertion started in
-    " the current line. The matched text must definitely be somewhere after it,
-    " but need not start with the start-of-insert position.
-    let l:insertedTextExpr = (line('.') == g:SnippetComplete_LastInsertStartPosition[1] ? '\%(\%' . g:SnippetComplete_LastInsertStartPosition[2] . 'c.\)\?\%>' . g:SnippetComplete_LastInsertStartPosition[2] . 'c.*\%#\&' : '')
+    " Locate possible start positions of the snippet, searching for full-id,
+    " end-id and non-id abbreviations, and whatever else was registered.
+
+    let l:insertedTextExpr = ''
+    if line('.') == g:SnippetComplete_LastInsertStartPosition[1]
+	" If the insertion started in the current line, only consider characters
+	" that were inserted by the last insertion for Vim abbreviations,
+	" because they only apply then. For this, we match with the stored start
+	" position of the current insert mode, if insertion started in the
+	" current line. The matched text must definitely be somewhere after it,
+	" but need not start with the start-of-insert position.
+	let l:insertedTextExpr = '\%(\%' . g:SnippetComplete_LastInsertStartPosition[2] . 'c.\)\?\%>' . g:SnippetComplete_LastInsertStartPosition[2] . 'c.*\%#\&'
+    endif
+
     let l:baseColumns = []
-    for l:abbreviationExpression in s:abbreviationExpressions
-	let l:startCol = searchpos(l:insertedTextExpr . '\%(' . l:abbreviationExpression[1] . '\)\%#', 'bn', line('.'))[1]
+    for [l:type, l:pattern] in s:GetSnippetPatternsPerType()
+	let l:needsInsertionAtOnce = get(g:SnippetComplete_Registry[l:type], 'needsInsertionAtOnce', 0)
+	let l:startCol = searchpos(
+	\   (l:needsInsertionAtOnce ? l:insertedTextExpr : '') .
+	\   '\%(' . l:pattern . '\)\%#',
+	\   'bn', line('.'))[1]
 	if l:startCol != 0
-	    call add(l:baseColumns, [l:abbreviationExpression[0], l:startCol])
+	    call add(l:baseColumns, [l:type, l:startCol])
 	endif
     endfor
     if empty(l:baseColumns)
@@ -56,66 +101,25 @@ function! s:DetermineBaseCol()
     return l:baseColumns
 endfunction
 
-function! s:GetAbbreviations()
-    let l:abbreviations = ''
-    let l:save_verbose = &verbose
-    try
-	set verbose=0	" Do not include any "Last set from" info.
-	redir => l:abbreviations
-	silent iabbrev
-    finally
-	redir END
-	let &verbose = l:save_verbose
-    endtry
-
-    let l:globalMatches = []
-    let l:localMatches = []
-    try
-	for l:abb in split(l:abbreviations, "\n")
-	    let [l:lhs, l:flags, l:rhs] = matchlist(l:abb, '^\S\s\+\(\S\+\)\s\+\([* ][@ ]\)\(.*\)$')[1:3]
-	    let l:match = { 'word': l:lhs, 'menu': l:rhs }
-	    call add((l:flags =~# '@' ? l:localMatches : l:globalMatches), l:match)
-	endfor
-    catch /^Vim\%((\a\+)\)\=:E688/	" catch error E688: More targets than List items
-	" When there are no abbreviations, Vim returns "No abbreviation found".
-    endtry
-
-    " A buffer-local abbreviation overrides an existing global abbreviation with
-    " the same {lhs}.
-    for l:localWord in map(copy(l:localMatches), 'v:val.word')
-	call filter(l:globalMatches, 'v:val.word !=# ' . string(l:localWord))
-    endfor
-    return l:globalMatches + l:localMatches
-endfunction
-
 function! s:GetBase( baseCol, cursorCol )
     return strpart(getline('.'), a:baseCol - 1, (a:cursorCol - a:baseCol))
 endfunction
-function! s:MatchAbbreviations( abbreviations, abbreviationFilterExpr, baseCol )
+function! s:MatchSnippets( snippets, baseCol )
     let l:base = s:GetBase(a:baseCol, col('.'))
 "****D echomsg '****' a:baseCol l:base
-
-    let l:filter = 'v:val.word =~#' . string(a:abbreviationFilterExpr)
-    if ! empty(l:base)
-	let l:filter .= ' && strpart(v:val.word, 0, ' . len(l:base) . ') ==# ' . string(l:base)
-    endif
-    return filter(copy(a:abbreviations), l:filter)
+    return (empty(l:base) ?
+    \   a:snippets :
+    \   filter(copy(a:snippets), 'strpart(v:val.word, 0, ' . len(l:base) . ') ==# ' . string(l:base))
+    \)
 endfunction
-let s:filterExpr = {
-\   'fullid': '^\k\+$',
-\   'endid': '^\%(\k\@\!\S\)\+\k$',
-\   'nonid': '^\S*\%(\k\@!\S\)$',
-\   'none': '^\S\+$'
-\}
-function! s:GetAbbreviationCompletions()
+function! s:GetSnippetCompletions()
     let l:baseColumns = s:DetermineBaseCol()
-    let l:abbreviations = s:GetAbbreviations()
 "****D echomsg '####' string(l:baseColumns)
-
     let l:completionsByBaseCol = {}
-    for [l:abbreviationType, l:baseCol] in l:baseColumns
-	let l:matches = s:MatchAbbreviations(l:abbreviations, s:filterExpr[l:abbreviationType], l:baseCol)
-"****D echomsg '****' l:abbreviationType string(l:matches)
+    for [l:type, l:baseCol] in l:baseColumns
+	let l:snippets = s:GetSnippets(l:type)
+	let l:matches = s:MatchSnippets(l:snippets, l:baseCol)
+"****D echomsg '****' l:type string(l:matches)
 	if ! empty(l:matches)
 	    let l:completions = get(l:completionsByBaseCol, l:baseCol, [])
 	    let l:completions += l:matches
@@ -180,7 +184,7 @@ function! SnippetComplete#SnippetComplete()
 	let l:baseIdx = s:nextBaseIdx
     else
 	" This is a new completion.
-	let s:lastCompletionsByBaseCol = s:GetAbbreviationCompletions()
+	let s:lastCompletionsByBaseCol = s:GetSnippetCompletions()
 
 	let l:baseIdx = 0
 	let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
@@ -237,4 +241,6 @@ function! SnippetComplete#PreSnippetCompleteExpr()
     return (pumvisible() || s:lastCompleteEndPosition == s:RecordPosition() && l:baseNum > 1 ? "\<C-e>" : '')
 endfunction
 
+let &cpo = s:save_cpo
+unlet s:save_cpo
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
