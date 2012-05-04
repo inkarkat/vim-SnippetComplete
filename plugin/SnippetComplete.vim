@@ -1,16 +1,21 @@
 " SnippetComplete.vim: Insert mode completion that completes defined
-" abbreviations.
+" abbreviations and snippets.
 "
 " DEPENDENCIES:
 "   - Requires Vim 7.0 or higher.
-"   - SnippetComplete.vim autoload script.
+"   - SnippetComplete.vim autoload script
+"   - SnippetComplete/Abbreviations.vim autoload script
 "
-" Copyright: (C) 2010-2011 Ingo Karkat
+" Copyright: (C) 2010-2012 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.00.005	03-May-2012	Generalize for completing other types of
+"				snippets (e.g. from snipMate):
+"				Introduce g:SnippetComplete_Registry for snippet
+"				types.
 "   1.02.004	03-Oct-2011	Change <Plug>-mapping to <Plug>(SnippetComplete)
 "				for consistency with my other completion plugins.
 "   1.01.003	25-Sep-2010	Moved functions from plugin to separate autoload
@@ -27,19 +32,25 @@ let g:loaded_SnippetComplete = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
+
+"- integration -----------------------------------------------------------------
+
 if ! exists('g:SnippetComplete_Registry')
     let g:SnippetComplete_Registry = {
-    \   '10_fullid': {
+    \   'fullid': {
+    \       'priority': 10,
     \       'pattern': '\k\+',
     \       'generator': function('SnippetComplete#Abbreviations#fullid'),
     \       'needsInsertionAtOnce': 1
     \   },
-    \   '20_endid': {
+    \   'endid': {
+    \       'priority': 20,
     \       'pattern': '\%(\k\@!\S\)\+\k\?',
     \       'generator': function('SnippetComplete#Abbreviations#endid'),
     \       'needsInsertionAtOnce': 1
     \   },
-    \   '30_nonid': {
+    \   'nonid': {
+    \       'priority': 30,
     \       'pattern': '\S\+\%(\k\@!\S\)\?',
     \       'generator': function('SnippetComplete#Abbreviations#nonid'),
     \       'needsInsertionAtOnce': 1
@@ -47,6 +58,8 @@ if ! exists('g:SnippetComplete_Registry')
     \}
 endif
 
+
+"- autocmds --------------------------------------------------------------------
 
 " In order to determine the base column of the completion, we need the start
 " position of the current insertion. Mark '[ isn't set until we (at least
@@ -60,6 +73,9 @@ augroup SnippetComplete
     autocmd!
     autocmd InsertEnter * let g:SnippetComplete_LastInsertStartPosition = getpos('.')
 augroup END
+
+
+"- mappings --------------------------------------------------------------------
 
 " Triggering a completion typically inserts the first match and thus
 " advances the cursor. We need the original cursor position to detect the
