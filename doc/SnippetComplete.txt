@@ -1,4 +1,4 @@
-*SnippetComplete.txt*   Insert mode completion that completes defined abbreviations. 
+*SnippetComplete.txt*   Insert mode completion that completes defined abbreviations and other snippets.
 
 		      SNIPPET COMPLETE    by Ingo Karkat
 							 *SnippetComplete.vim*
@@ -18,16 +18,16 @@ DESCRIPTION					 *SnippetComplete-description*
 Insert mode abbreviations and snippets can dramatically speed up editing, but
 how does one remember all those shortcuts that are rarely used? You can list
 all insert mode abbreviations via |:ia| to break out of this vicious circle,
-but switching to command mode for that is cumbersome. 
+but switching to command mode for that is cumbersome.
 
 This plugin offers a context-sensitive insert mode completion to quickly list
-and complete defined abbreviations directly while typing. 
+and complete defined abbreviations directly while typing.
 
 ==============================================================================
 USAGE						       *SnippetComplete-usage*
 								  *i_CTRL-X_]*
 i_CTRL-X_]		Find matches for abbreviations that start with the
-			text in front of the cursor. 
+			text in front of the cursor.
 
 			There are three types of |abbreviations| (full-id,
 			end-id and non-id), which can consist of different
@@ -38,12 +38,12 @@ i_CTRL-X_]		Find matches for abbreviations that start with the
 			completion indicates such a ambiguity through the
 			message "base n of m; next: blah", and you can cycle
 			through the different completion bases by repeating
-			the i_CTRL-X_] shortcut. 
+			the i_CTRL-X_] shortcut.
 
 			Matches are selected and inserted as with any other
 			|ins-completion|, see |popupmenu-keys|. If you use
 			<Space> or |i_CTRL-]| to select an abbreviation, it'll
-			be expanded automatically. 
+			be expanded automatically.
 
 ==============================================================================
 INSTALLATION					*SnippetComplete-installation*
@@ -54,18 +54,18 @@ the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
 vimball or via the |:UseVimball| command. >
     vim SnippetComplete.vba.gz
     :so %
-To uninstall, use the |:RmVimball| command. 
+To uninstall, use the |:RmVimball| command.
 
 DEPENDENCIES					*SnippetComplete-dependencies*
 
-- Requires Vim 7.0 or higher. 
+- Requires Vim 7.0 or higher.
 
 ==============================================================================
 CONFIGURATION				       *SnippetComplete-configuration*
 
 If you want to use a different mapping, map your keys to the
 <Plug>SnippetComplete mapping target _before_ sourcing this script (e.g. in
-your |vimrc|). 
+your |vimrc|).
 For example, to use CTRL-X <Tab>, use this: >
     imap <C-x><Tab> <Plug>(SnippetComplete)
 <
@@ -73,7 +73,7 @@ For example, to use CTRL-X <Tab>, use this: >
 INTEGRATION					 *SnippetComplete-integration*
 
 It is planned to extend the completion to snippets for the snipMate plugin
-(vimscript #2540) and offer an extension point for other snippet plugins. 
+(vimscript #2540) and offer an extension point for other snippet plugins.
 
 ==============================================================================
 LIMITATIONS					 *SnippetComplete-limitations*
@@ -82,12 +82,12 @@ KNOWN PROBLEMS				      *SnippetComplete-known-problems*
 
 - When <CR> is :map-expr to <C-Y> when pumvisible() to accept the current
   entry, and there's additional processing after <C-Y> (in my case, <C-\><C-o>
-  to call a function) the completed abbreviation is not expanded any more. 
+  to call a function) the completed abbreviation is not expanded any more.
 
 TODO							*SnippetComplete-todo*
 
-- Getting and sorting of matches when 'ignorecase' is on. 
-- Limiting the length of the snippet expansion shown in the popup menu. 
+- Getting and sorting of matches when 'ignorecase' is on.
+- Limiting the length of the snippet expansion shown in the popup menu.
 
 IDEAS						       *SnippetComplete-ideas*
 
@@ -95,17 +95,17 @@ IDEAS						       *SnippetComplete-ideas*
 HISTORY						     *SnippetComplete-history*
 
 1.01	25-Sep-2010
-Using separate autoload script to help speed up Vim startup. 
+Using separate autoload script to help speed up Vim startup.
 
 1.00	12-Jan-2010
-First published version. 
+First published version.
 
 0.01	08-Jan-2010
-Started development. 
+Started development.
 
 ==============================================================================
 Copyright: (C) 2010 Ingo Karkat
-The VIM LICENSE applies to this script; see|copyright|. 
+The VIM LICENSE applies to this script; see|copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
 ==============================================================================
