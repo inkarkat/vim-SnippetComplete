@@ -1,6 +1,3 @@
+autoload/SnippetComplete.vim
 plugin/SnippetComplete.vim
 doc/SnippetComplete.txt
-
-:cd $HOME/Ablage|1,.-2MkVimball! SnippetComplete.vba
-:cd $HOME/Ablage|! "unix && gzip -f9 SnippetComplete.vba"
-
