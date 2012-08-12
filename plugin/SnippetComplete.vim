@@ -12,6 +12,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.00.006	05-May-2012	Rename g:SnippetComplete_Registry to
+"				g:SnippetComplete_RegisteredTypes and pass this
+"				to SnippetComplete#SnippetComplete() to allow
+"				other uses of the completion excluding the Vim
+"				abbreviations.
 "   2.00.005	03-May-2012	Generalize for completing other types of
 "				snippets (e.g. from snipMate):
 "				Introduce g:SnippetComplete_Registry for snippet
@@ -35,8 +40,8 @@ set cpo&vim
 
 "- integration -----------------------------------------------------------------
 
-if ! exists('g:SnippetComplete_Registry')
-    let g:SnippetComplete_Registry = {
+if ! exists('g:SnippetComplete_AbbreviationTypes')
+    let g:SnippetComplete_AbbreviationTypes = {
     \   'fullid': {
     \       'priority': 10,
     \       'pattern': '\k\+',
@@ -56,6 +61,9 @@ if ! exists('g:SnippetComplete_Registry')
     \       'needsInsertionAtOnce': 1
     \   },
     \}
+endif
+if ! exists('g:SnippetComplete_RegisteredTypes')
+    let g:SnippetComplete_RegisteredTypes = copy(g:SnippetComplete_AbbreviationTypes)
 endif
 
 
@@ -83,7 +91,7 @@ augroup END
 " use another completion base. The reset of the cursor position is done in a
 " preceding expression mapping, because it is not allowed to change the cursor
 " position from within the actual SnippetComplete#SnippetComplete() expression.
-inoremap <silent> <Plug>(SnippetComplete) <C-r>=SnippetComplete#PreSnippetCompleteExpr()<CR><C-r>=SnippetComplete#SnippetComplete()<CR>
+inoremap <silent> <Plug>(SnippetComplete) <C-r>=SnippetComplete#PreSnippetCompleteExpr()<CR><C-r>=SnippetComplete#SnippetComplete(g:SnippetComplete_RegisteredTypes)<CR>
 if ! hasmapto('<Plug>(SnippetComplete)', 'i')
     imap <C-x>] <Plug>(SnippetComplete)
 endif
