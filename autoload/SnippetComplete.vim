@@ -179,35 +179,31 @@ let s:lastCompletionsByBaseCol = {}
 let s:nextBaseIdx = 0
 let s:initialCompletePosition = []
 let s:lastCompleteEndPosition = []
-function! SnippetComplete#SnippetComplete( types )
+function! SnippetComplete#SnippetComplete( findstart, base )
 "****D echomsg '****' string(s:RecordPosition())
-    let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
-    if s:initialCompletePosition == s:RecordPosition() && l:baseNum > 1
-	" The Snippet complete mapping is being repeatedly executed on the same
-	" position, and we have multiple completion bases. Use the next/first
-	" base from the cached completions.
-	let l:baseIdx = s:nextBaseIdx
-    else
-	" This is a new completion.
-	let s:lastCompletionsByBaseCol = s:GetSnippetCompletions(a:types)
-
-	let l:baseIdx = 0
+    if a:findstart
 	let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
-	let s:initialCompletePosition = s:RecordPosition()
-	let s:initialCompletionCol = col('.')	" Note: The column is also contained in s:initialCompletePosition, but a separate variable is more expressive.
-    endif
+	if s:initialCompletePosition == s:RecordPosition() && l:baseNum > 1
+	    " The Snippet complete mapping is being repeatedly executed on the same
+	    " position, and we have multiple completion bases. Use the next/first
+	    " base from the cached completions.
+	    let l:baseIdx = s:nextBaseIdx
+	else
+	    " This is a new completion.
+	    let s:lastCompletionsByBaseCol = s:GetSnippetCompletions(s:types)
 
-    " Multiple bases are presented from shortest base (i.e. largest base column)
-    " to longest base. Full-id abbreviations have the most restrictive pattern
-    " and thus always generate the shortest bases; end-id and non-id
-    " abbreviations accept more character classes and can result in longer
-    " bases.
-    let l:baseColumns = reverse(sort(keys(s:lastCompletionsByBaseCol)))
+	    let l:baseIdx = 0
+	    let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
+	    let s:initialCompletePosition = s:RecordPosition()
+	    let s:initialCompletionCol = col('.')	" Note: The column is also contained in s:initialCompletePosition, but a separate variable is more expressive.
+	endif
 
-    if l:baseNum > 0
-	" Show the completions for the current base.
-	call complete(l:baseColumns[l:baseIdx], sort(s:lastCompletionsByBaseCol[l:baseColumns[l:baseIdx]], 's:CompletionCompare'))
-	let s:lastCompleteEndPosition = s:RecordPosition()
+	" Multiple bases are presented from shortest base (i.e. largest base column)
+	" to longest base. Full-id abbreviations have the most restrictive pattern
+	" and thus always generate the shortest bases; end-id and non-id
+	" abbreviations accept more character classes and can result in longer
+	" bases.
+	let l:baseColumns = reverse(sort(keys(s:lastCompletionsByBaseCol)))
 
 	if l:baseNum > 1
 	    " There are multiple bases; make subsequent invocations cycle
@@ -224,11 +220,22 @@ function! SnippetComplete#SnippetComplete( types )
 	    " preview of the next one.
 	    call s:ShowMultipleBasesMessage(l:baseIdx + 1, l:baseNum, l:nextBase)
 	endif
-    endif
 
+	let s:baseCol = (l:baseNum > 0 ? l:baseColumns[l:baseIdx] : -1)
+	return s:baseCol - 1
+    else
+	" Show the completions for the current base.
+	return (s:baseCol == -1 ? [] : sort(s:lastCompletionsByBaseCol[s:baseCol], 's:CompletionCompare'))
+    endif
+endfunction
+function! SnippetComplete#RecordCompleteEndPosition()
+    let s:lastCompleteEndPosition = s:RecordPosition()
     return ''
 endfunction
-function! SnippetComplete#PreSnippetCompleteExpr()
+function! SnippetComplete#Expr( types )
+    let s:types = a:types
+    set completefunc=SnippetComplete#SnippetComplete
+
     " To be able to detect a repeat completion, we need to return the cursor to
     " the initial completion position, but setting the completions typically
     " inserts the first match and thus advances the cursor. That resulting
@@ -243,7 +250,7 @@ function! SnippetComplete#PreSnippetCompleteExpr()
     " end the completion; this may only not work when 'completeopt' contains
     " "longest" (Vim returns to what was typed or longest common string).
     let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
-    return (pumvisible() || s:lastCompleteEndPosition == s:RecordPosition() && l:baseNum > 1 ? "\<C-e>" : '')
+    return (pumvisible() || s:lastCompleteEndPosition == s:RecordPosition() && l:baseNum > 1 ? "\<C-e>" : '') . "\<C-x>\<C-u>\<C-r>=SnippetComplete#RecordCompleteEndPosition()\<CR>"
 endfunction
 
 let &cpo = s:save_cpo
