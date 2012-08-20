@@ -12,6 +12,8 @@
 "   2.00.003	05-May-2012	Rewrite s:RegistryTypeCompare() so that it
 "				doesn't need to access
 "				g:SnippetComplete_Registry.
+"				Allow to pass in types instead of accessing
+"				g:SnippetComplete_Registry.
 "   2.00.002	03-May-2012	Generalize for completing other types of
 "				snippets (e.g. from snipMate):
 "				Introduce g:SnippetComplete_Registry for snippet
@@ -30,35 +32,35 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-function! s:RegistryTypeCompare( c1, c2 )
+function! s:TypeCompare( c1, c2 )
     let l:p1 = a:c1[1].priority
     let l:p2 = a:c2[1].priority
     return (l:p1 ==# l:p2 ? 0 : l:p1 ># l:p2 ? 1 : -1)
 endfunction
-function! s:GetSortedRegistryTypes()
-    return map(sort(items(g:SnippetComplete_Registry), 's:RegistryTypeCompare'), 'v:val[0]')
+function! s:GetSortedTypes( types )
+    return map(sort(items(a:types), 's:TypeCompare'), 'v:val[0]')
 endfunction
-function! s:GetSnippetPatternsPerType()
+function! s:GetSnippetPatternsPerType( types )
     return map(
-    \   s:GetSortedRegistryTypes(),
-    \	'[v:val, g:SnippetComplete_Registry[v:val].pattern]'
+    \   s:GetSortedTypes(a:types),
+    \	'[v:val, a:types[v:val].pattern]'
     \)
 endfunction
-function! s:GetSnippets( type )
+function! s:GetSnippets( types, type )
     if a:type ==# 'none'
 	" There is no base, so the snippet type can not be determined. Ask all
 	" registered types for their snippets.
 	let l:snippets = []
-	for l:type in s:GetSortedRegistryTypes()
-	    let l:snippets += call(g:SnippetComplete_Registry[l:type].generator, [])
+	for l:type in s:GetSortedTypes(a:types)
+	    let l:snippets += call(a:types[l:type].generator, [])
 	endfor
 	return l:snippets
     else
-	return call(g:SnippetComplete_Registry[a:type].generator, [])
+	return call(a:types[a:type].generator, [])
     endif
 endfunction
 
-function! s:DetermineBaseCol()
+function! s:DetermineBaseCol( types )
 "*******************************************************************************
 "* PURPOSE:
 "   Check the text before the cursor to determine possible base columns where
@@ -88,8 +90,8 @@ function! s:DetermineBaseCol()
     endif
 
     let l:baseColumns = []
-    for [l:type, l:pattern] in s:GetSnippetPatternsPerType()
-	let l:needsInsertionAtOnce = get(g:SnippetComplete_Registry[l:type], 'needsInsertionAtOnce', 0)
+    for [l:type, l:pattern] in s:GetSnippetPatternsPerType(a:types)
+	let l:needsInsertionAtOnce = get(a:types[l:type], 'needsInsertionAtOnce', 0)
 	let l:startCol = searchpos(
 	\   (l:needsInsertionAtOnce ? l:insertedTextExpr : '') .
 	\   '\%(' . l:pattern . '\)\%#',
@@ -115,12 +117,12 @@ function! s:MatchSnippets( snippets, baseCol )
     \   filter(copy(a:snippets), 'strpart(v:val.word, 0, ' . len(l:base) . ') ==# ' . string(l:base))
     \)
 endfunction
-function! s:GetSnippetCompletions()
-    let l:baseColumns = s:DetermineBaseCol()
+function! s:GetSnippetCompletions( types )
+    let l:baseColumns = s:DetermineBaseCol(a:types)
 "****D echomsg '####' string(l:baseColumns)
     let l:completionsByBaseCol = {}
     for [l:type, l:baseCol] in l:baseColumns
-	let l:snippets = s:GetSnippets(l:type)
+	let l:snippets = s:GetSnippets(a:types, l:type)
 	let l:matches = s:MatchSnippets(l:snippets, l:baseCol)
 "****D echomsg '****' l:type string(l:matches)
 	if ! empty(l:matches)
@@ -177,7 +179,7 @@ let s:lastCompletionsByBaseCol = {}
 let s:nextBaseIdx = 0
 let s:initialCompletePosition = []
 let s:lastCompleteEndPosition = []
-function! SnippetComplete#SnippetComplete()
+function! SnippetComplete#SnippetComplete( types )
 "****D echomsg '****' string(s:RecordPosition())
     let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
     if s:initialCompletePosition == s:RecordPosition() && l:baseNum > 1
@@ -187,7 +189,7 @@ function! SnippetComplete#SnippetComplete()
 	let l:baseIdx = s:nextBaseIdx
     else
 	" This is a new completion.
-	let s:lastCompletionsByBaseCol = s:GetSnippetCompletions()
+	let s:lastCompletionsByBaseCol = s:GetSnippetCompletions(a:types)
 
 	let l:baseIdx = 0
 	let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
