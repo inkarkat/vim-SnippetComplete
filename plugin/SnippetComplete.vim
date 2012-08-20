@@ -95,7 +95,7 @@ augroup END
 " use another completion base. The reset of the cursor position is done in a
 " preceding expression mapping, because it is not allowed to change the cursor
 " position from within the actual SnippetComplete#SnippetComplete() expression.
-inoremap <silent> <Plug>(SnippetComplete) <C-r>=SnippetComplete#PreSnippetCompleteExpr()<CR><C-r>=SnippetComplete#SnippetComplete(g:SnippetComplete_RegisteredTypes)<CR>
+inoremap <silent> <expr> <Plug>(SnippetComplete) SnippetComplete#Expr(g:SnippetComplete_RegisteredTypes)
 if ! hasmapto('<Plug>(SnippetComplete)', 'i')
     imap <C-x>] <Plug>(SnippetComplete)
 endif
