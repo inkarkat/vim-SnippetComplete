@@ -26,7 +26,7 @@ and complete defined abbreviations directly while typing.
 ==============================================================================
 USAGE						       *SnippetComplete-usage*
 								  *i_CTRL-X_]*
-i_CTRL-X_]		Find matches for abbreviations that start with the
+CTRL-X ]		Find matches for abbreviations that start with the
 			text in front of the cursor. If other snippet types
 			are registered, show those, too.
 
