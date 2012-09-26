@@ -65,7 +65,7 @@ DEPENDENCIES					*SnippetComplete-dependencies*
 CONFIGURATION				       *SnippetComplete-configuration*
 
 If you want to use a different mapping, map your keys to the
-<Plug>(SnippetComplete) mapping target _before_ sourcing this script (e.g. in
+<Plug>(SnippetComplete) mapping target _before_ sourcing the script (e.g. in
 your |vimrc|).
 For example, to use CTRL-X <Tab>, use this: >
     imap <C-x><Tab> <Plug>(SnippetComplete)
