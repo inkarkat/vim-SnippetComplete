@@ -64,6 +64,9 @@ DEPENDENCIES					*SnippetComplete-dependencies*
 ==============================================================================
 CONFIGURATION				       *SnippetComplete-configuration*
 
+For a permanent configuration, put the following commands into your |vimrc|:
+
+						       *SnippetComplete-remap*
 If you want to use a different mapping, map your keys to the
 <Plug>(SnippetComplete) mapping target _before_ sourcing the script (e.g. in
 your |vimrc|).
