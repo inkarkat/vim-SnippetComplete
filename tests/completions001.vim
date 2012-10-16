@@ -1,18 +1,18 @@
-" Test GetAbbreviationCompletions() base columns and abbreviation matches. 
+" Test GetAbbreviationCompletions() base columns and abbreviation matches.
 " Tests that (potentially multiple) base columns (depending on the abbreviation
-" type) have been identified. 
+" type) have been identified.
 " Tests that for each base column, the union of completion matches for the
 " participating abbreviation types have been prepared. The order of completions
-" is undefined and isn't tested. 
+" is undefined and isn't tested.
 
-source helpers/abbreviations.vim
 source helpers/SnippetComplete.vim
+source helpers/abbreviations.vim
 
 function! s:IsMatches( base, expectedCompletionsByBaseCol, description )
     1delete _
     execute 'normal! a' . a:base . ' '
 
-    let l:completionsByBaseCol = GetAbbreviationCompletions()
+    let l:completionsByBaseCol = GetSnippetCompletions()
 
     for l:baseCol in keys(l:completionsByBaseCol)
 	call map(l:completionsByBaseCol[l:baseCol], 'v:val.word')
@@ -43,4 +43,3 @@ call s:IsMatches('pre|', {1: ['pre|ccnt!', 'pre|ccwo!', 'pre|coda!']}, 'non-id p
 call s:IsMatches('pre|cc', {1: ['pre|ccnt!', 'pre|ccwo!'], 5: ['ccnt', 'ccwo']}, 'non-id pre|cc match at start of line OR full-id cc match nonkeyword-delimited')
 
 call vimtest#Quit()
-
