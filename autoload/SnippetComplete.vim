@@ -2,6 +2,7 @@
 " abbreviations and snippets.
 "
 " DEPENDENCIES:
+"   - CompleteHelper/Abbreviate.vim autoload script
 "
 " Copyright: (C) 2010-2012 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -9,6 +10,15 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.10.004	17-Oct-2012	ENH: When the base doesn't match with the
+"				beginning of a snippet, fall back to matches
+"				either anywhere in the snippet or in the snippet
+"				expansion.
+"				Truncate very long or multi-line snippet
+"				expansions in the popup menu. This requires the
+"				CompleteHelper plugin. When the entire snippet
+"				doesn't fit into the popup menu, offer it for
+"				showing in the preview window.
 "   2.00.003	05-May-2012	Rewrite s:RegistryTypeCompare() so that it
 "				doesn't need to access
 "				g:SnippetComplete_Registry.
@@ -112,10 +122,23 @@ endfunction
 function! s:MatchSnippets( snippets, baseCol )
     let l:base = s:GetBase(a:baseCol, col('.'))
 "****D echomsg '****' a:baseCol l:base
-    return (empty(l:base) ?
-    \   a:snippets :
-    \   filter(copy(a:snippets), 'strpart(v:val.word, 0, ' . len(l:base) . ') ==# ' . string(l:base))
+    if empty(l:base)
+	return a:snippets
+    endif
+
+    let l:matches = filter(copy(a:snippets), 'strpart(v:val.word, 0, ' . len(l:base) . ') ==# ' . string(l:base))
+    if ! empty(l:matches)
+	return l:matches
+    endif
+
+    " When the base doesn't match with the beginning of a snippet, fall back to
+    " matches either anywhere in the snippet or in the snippet expansion.
+    let l:matches = filter(copy(a:snippets),
+    \	'stridx(v:val.word, l:base) != -1 ||' .
+    \   'stridx(get(v:val, "menu", ""), l:base) != -1 ||' .
+    \   'stridx(get(v:val, "info", ""), l:base) != -1'
     \)
+    return l:matches
 endfunction
 function! s:GetSnippetCompletions( types )
     let l:baseColumns = s:DetermineBaseCol(a:types)
@@ -175,6 +198,23 @@ function! s:RecordPosition()
     " a window above the current), the position changes.
     return getpos('.') + [bufnr(''), winnr(), tabpagenr()]
 endfunction
+function! s:FormatMatches( matchObject )
+    " Shorten the snippet expansion if necessary.
+    let l:menu = get(a:matchObject, 'menu', '')
+    let l:text = CompleteHelper#Abbreviate#Text(l:menu)
+    if l:text !=# l:menu
+	let a:matchObject.menu = l:text
+
+	if ! has_key(a:matchObject, 'info')
+	    " When the entire snippet doesn't fit into the popup menu, offer it
+	    " for showing in the preview window.
+	    let a:matchObject.info = l:menu
+	endif
+    endif
+
+    return a:matchObject
+endfunction
+
 let s:lastCompletionsByBaseCol = {}
 let s:nextBaseIdx = 0
 let s:initialCompletePosition = []
@@ -206,7 +246,9 @@ function! SnippetComplete#SnippetComplete( types )
 
     if l:baseNum > 0
 	" Show the completions for the current base.
-	call complete(l:baseColumns[l:baseIdx], sort(s:lastCompletionsByBaseCol[l:baseColumns[l:baseIdx]], 's:CompletionCompare'))
+	let l:matches = sort(s:lastCompletionsByBaseCol[l:baseColumns[l:baseIdx]], 's:CompletionCompare')
+	call map(l:matches, 's:FormatMatches(v:val)')
+	call complete(l:baseColumns[l:baseIdx], l:matches)
 	let s:lastCompleteEndPosition = s:RecordPosition()
 
 	if l:baseNum > 1
