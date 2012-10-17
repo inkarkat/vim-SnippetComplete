@@ -10,7 +10,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
-"   2.10.004	17-Oct-2012	ENH: When the base doesn't match with the
+"   2.10.004	17-Oct-2012	ENH: When no base doesn't match with the
 "				beginning of a snippet, fall back to matches
 "				either anywhere in the snippet or in the snippet
 "				expansion.
@@ -119,34 +119,26 @@ endfunction
 function! s:GetBase( baseCol, cursorCol )
     return strpart(getline('.'), a:baseCol - 1, (a:cursorCol - a:baseCol))
 endfunction
-function! s:MatchSnippets( snippets, baseCol )
-    let l:base = s:GetBase(a:baseCol, col('.'))
-"****D echomsg '****' a:baseCol l:base
-    if empty(l:base)
-	return a:snippets
-    endif
-
-    let l:matches = filter(copy(a:snippets), 'strpart(v:val.word, 0, ' . len(l:base) . ') ==# ' . string(l:base))
-    if ! empty(l:matches)
-	return l:matches
-    endif
-
-    " When the base doesn't match with the beginning of a snippet, fall back to
-    " matches either anywhere in the snippet or in the snippet expansion.
-    let l:matches = filter(copy(a:snippets),
-    \	'stridx(v:val.word, l:base) != -1 ||' .
-    \   'stridx(get(v:val, "menu", ""), l:base) != -1 ||' .
-    \   'stridx(get(v:val, "info", ""), l:base) != -1'
-    \)
-    return l:matches
+function! s:MatchSnippetsStrict( snippets, base )
+    return filter(copy(a:snippets), 'strpart(v:val.word, 0, ' . len(a:base) . ') ==# ' . string(a:base))
 endfunction
-function! s:GetSnippetCompletions( types )
-    let l:baseColumns = s:DetermineBaseCol(a:types)
-"****D echomsg '####' string(l:baseColumns)
+function! s:MatchSnippetsRelaxed( snippets, base )
+    return filter(copy(a:snippets),
+    \   'stridx(v:val.word, a:base) != -1 ||' .
+    \   'stridx(get(v:val, "menu", ""), a:base) != -1 ||' .
+    \   'stridx(get(v:val, "info", ""), a:base) != -1'
+    \)
+endfunction
+function! s:GetSnippetCompletionsWithStrategy( Strategy, types, baseColumns )
     let l:completionsByBaseCol = {}
-    for [l:type, l:baseCol] in l:baseColumns
+    for [l:type, l:baseCol] in a:baseColumns
 	let l:snippets = s:GetSnippets(a:types, l:type)
-	let l:matches = s:MatchSnippets(l:snippets, l:baseCol)
+	let l:base = s:GetBase(l:baseCol, col('.'))
+"****D echomsg '****' l:baseCol l:base
+	let l:matches = (empty(l:base) ?
+	\   l:snippets :
+	\   call(a:Strategy, [l:snippets, l:base])
+	\)
 "****D echomsg '****' l:type string(l:matches)
 	if ! empty(l:matches)
 	    let l:completions = get(l:completionsByBaseCol, l:baseCol, [])
@@ -155,6 +147,17 @@ function! s:GetSnippetCompletions( types )
 	endif
     endfor
 "****D echomsg '****' string(l:completionsByBaseCol)
+    return l:completionsByBaseCol
+endfunction
+function! s:GetSnippetCompletions( types )
+    let l:baseColumns = s:DetermineBaseCol(a:types)
+"****D echomsg '####' string(l:baseColumns)
+    let l:completionsByBaseCol = s:GetSnippetCompletionsWithStrategy('s:MatchSnippetsStrict', a:types, l:baseColumns)
+    if empty(l:completionsByBaseCol)
+	" When the base doesn't match with the beginning of a snippet, fall back
+	" to matches either anywhere in the snippet or in the snippet expansion.
+	let l:completionsByBaseCol = s:GetSnippetCompletionsWithStrategy('s:MatchSnippetsRelaxed', a:types, l:baseColumns)
+    endif
     return l:completionsByBaseCol
 endfunction
 function! s:CompletionCompare( c1, c2 )
