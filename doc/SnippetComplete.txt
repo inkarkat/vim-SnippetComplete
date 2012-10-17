@@ -50,16 +50,18 @@ CTRL-X ]		Find matches for abbreviations that start with the
 INSTALLATION					*SnippetComplete-installation*
 
 This script is packaged as a |vimball|. If you have the "gunzip" decompressor
-in your PATH, simply edit the *.vba.gz package in Vim; otherwise, decompress
+in your PATH, simply edit the *.vmb.gz package in Vim; otherwise, decompress
 the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
 vimball or via the |:UseVimball| command. >
-    vim SnippetComplete.vba.gz
+    vim SnippetComplete*.vmb.gz
     :so %
 To uninstall, use the |:RmVimball| command.
 
 DEPENDENCIES					*SnippetComplete-dependencies*
 
 - Requires Vim 7.0 or higher.
+- Requires the |CompleteHelper.vim| plugin (vimscript #3914), version 1.10 or
+  higher.
 
 ==============================================================================
 CONFIGURATION				       *SnippetComplete-configuration*
@@ -120,12 +122,18 @@ KNOWN PROBLEMS				      *SnippetComplete-known-problems*
 TODO							*SnippetComplete-todo*
 
 - Getting and sorting of matches when 'ignorecase' is on.
-- Limiting the length of the snippet expansion shown in the popup menu.
 
 IDEAS						       *SnippetComplete-ideas*
 
 ==============================================================================
 HISTORY						     *SnippetComplete-history*
+
+2.10	17-Oct-2012
+- ENH: When no base doesn't match with the beginning of a snippet, fall back
+  to matches either anywhere in the snippet or in the snippet expansion.
+- Truncate very long or multi-line snippet expansions in the popup menu. This
+  requires the CompleteHelper plugin. When the entire snippet doesn't fit into
+  the popup menu, offer it for showing in the preview window.
 
 2.01	13-Aug-2012
 - FIX: Vim 7.0/1 need preloading of functions referenced in Funcrefs.
