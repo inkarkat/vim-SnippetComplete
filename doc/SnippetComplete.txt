@@ -25,10 +25,19 @@ and complete defined abbreviations directly while typing.
 
 ==============================================================================
 USAGE						       *SnippetComplete-usage*
+
+In insert mode, optionally type part of the snippet shortcut or a fragment
+from its expected expansion, and invoke the snippet completion via CTRL-X ].
+You can then search forward and backward via CTRL-N / CTRL-P, as usual.
 								  *i_CTRL-X_]*
 CTRL-X ]		Find matches for abbreviations that start with the
 			text in front of the cursor. If other snippet types
 			are registered, show those, too.
+			If no matches were found that way, matches anywhere in
+			the snippet or in the snippet's expanded text will be
+			shown. So if you can't remember the shortcut, but a
+			word fragment from the resulting expansion, just try
+			with that.
 
 			There are three types of |abbreviations| (full-id,
 			end-id and non-id), which can consist of different
