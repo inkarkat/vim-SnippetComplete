@@ -10,6 +10,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.10.005	18-Oct-2012	Must use the keyword before the cursor for
+"				matches in the snippet expansion, not the type's
+"				base column.
 "   2.10.004	17-Oct-2012	ENH: When no base doesn't match with the
 "				beginning of a snippet, fall back to matches
 "				either anywhere in the snippet or in the snippet
@@ -123,8 +126,10 @@ function! s:MatchSnippetsStrict( snippets, base )
     return filter(copy(a:snippets), 'strpart(v:val.word, 0, ' . len(a:base) . ') ==# ' . string(a:base))
 endfunction
 function! s:MatchSnippetsRelaxed( snippets, base )
+    return filter(copy(a:snippets), 'stridx(v:val.word, a:base) != -1')
+endfunction
+function! s:MatchSnippetsExpansion( snippets, base )
     return filter(copy(a:snippets),
-    \   'stridx(v:val.word, a:base) != -1 ||' .
     \   'stridx(get(v:val, "menu", ""), a:base) != -1 ||' .
     \   'stridx(get(v:val, "info", ""), a:base) != -1'
     \)
@@ -156,7 +161,25 @@ function! s:GetSnippetCompletions( types )
     if empty(l:completionsByBaseCol)
 	" When the base doesn't match with the beginning of a snippet, fall back
 	" to matches either anywhere in the snippet or in the snippet expansion.
+
+	" First do a relaxed match anywhere in the snippet.
 	let l:completionsByBaseCol = s:GetSnippetCompletionsWithStrategy('s:MatchSnippetsRelaxed', a:types, l:baseColumns)
+
+	" Then add any matches in the snippet expansion.
+	" For these, the keyword before the cursor must be used as base, not the
+	" base columns as determined by the snippet type!
+	let l:startCol = searchpos('\k*\%#', 'bn', line('.'))[1]
+	if l:startCol != 0
+	    let l:startColumns = map(keys(a:types), '[v:val, l:startCol]') " Transform into the expected structure.
+	    let l:completionsByStartCol = s:GetSnippetCompletionsWithStrategy('s:MatchSnippetsExpansion', a:types, l:startColumns)
+
+	    " Add the matches to any matches already existing for that base
+	    " column. There will be duplicates when the base matches both in the
+	    " snippet and its expansion, but Vim's completion will ignore
+	    " identical entries.
+	    let l:completionsByBaseCol[l:startCol] = get(l:completionsByBaseCol, l:startCol, []) +
+	    \   get(l:completionsByStartCol, l:startCol, [])
+	endif
     endif
     return l:completionsByBaseCol
 endfunction
