@@ -23,6 +23,11 @@ but switching to command mode for that is cumbersome.
 This plugin offers a context-sensitive insert mode completion to quickly list
 and complete defined abbreviations directly while typing.
 
+SEE ALSO								     *
+
+- The |SnippetCompleteSnipMate.vim| plugin (vimscript #4276) extends the
+  completion with snippets for the popular snipMate plugin (vimscript #2540).
+
 ==============================================================================
 USAGE						       *SnippetComplete-usage*
 
