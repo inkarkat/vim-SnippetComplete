@@ -1,3 +1,4 @@
 autoload/SnippetComplete.vim
+autoload/SnippetComplete/Abbreviations.vim
 plugin/SnippetComplete.vim
 doc/SnippetComplete.txt
