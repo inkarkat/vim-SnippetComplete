@@ -1,9 +1,9 @@
-" Test DetermineBase() for all three types of abbreviations. 
+" Test DetermineBase() for all three types of abbreviations.
 " Tests that for the inserted text, the correct base column and abbreviation
 " type is detected. (Due to partially entered abbreviations, other types may
-" match, too; this is not tested.) 
+" match, too; this is not tested.)
 " Tests that the determination differentiates between existing text and text
-" that has just been inserted. 
+" that has just been inserted.
 
 source helpers/SnippetComplete.vim
 
@@ -44,6 +44,4 @@ call s:IsBase('lala', '', 'foo', 'fullid', 'at start of insertion')
 call s:IsBase('%#^*', '', '#i', 'endid', 'at start of insertion')
 call s:IsBase('la %X#ab', '', 'def#', 'nonid', 'at start of insertion')
 
-
 call vimtest#Quit()
-
