@@ -76,6 +76,8 @@ DEPENDENCIES					*SnippetComplete-dependencies*
 - Requires Vim 7.0 or higher.
 - Requires the |CompleteHelper.vim| plugin (vimscript #3914), version 1.10 or
   higher.
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.001 or
+  higher.
 
 ==============================================================================
 CONFIGURATION				       *SnippetComplete-configuration*
