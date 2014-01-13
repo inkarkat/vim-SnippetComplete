@@ -76,7 +76,7 @@ DEPENDENCIES					*SnippetComplete-dependencies*
 - Requires Vim 7.0 or higher.
 - Requires the |CompleteHelper.vim| plugin (vimscript #3914), version 1.10 or
   higher.
-- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.001 or
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.009 or
   higher.
 
 ==============================================================================
@@ -143,6 +143,9 @@ IDEAS						       *SnippetComplete-ideas*
 
 ==============================================================================
 HISTORY						     *SnippetComplete-history*
+
+2.12	RELEASEME
+- Add dependency to ingo-library (vimscript #4433).
 
 2.11	15-Jan-2013
 FIX: Must use numerical sort() for s:lastCompletionsByBaseCol.
