@@ -1,15 +1,13 @@
-" Test GetAbbreviations() retrieval of defined abbreviations in insert mode. 
+" Test RetrieveAbbreviations() retrieval of defined abbreviations in insert mode.
 " Tests that insert-mode and any-mode abbreviations, global and buffer-local
-" ones are retrieved. 
-" Does not impose any ordering of the retrieved abbreviations. 
-
-source helpers/SnippetComplete.vim
+" ones are retrieved.
+" Does not impose any ordering of the retrieved abbreviations.
 
 call vimtest#StartTap()
 call vimtap#Plan(5)
 
 function! s:IsWords( expectedWords, description )
-    let l:actualMatches = GetAbbreviations()
+    let l:actualMatches = SnippetComplete#Abbreviations#RetrieveAbbreviations()
     call vimtap#collections#IsSet(map(l:actualMatches, 'v:val.word'), a:expectedWords, a:description)
 endfunction
 
@@ -31,4 +29,3 @@ ia <buffer> Puffer (this local buffer only)
 call s:IsWords(['AAA', 'Buffer', 'FOO', 'Foo', 'Puffer', 'XXX', 'ZZZ'], 'Foo, Triple and Buffer abbreviations')
 
 call vimtest#Quit()
-
