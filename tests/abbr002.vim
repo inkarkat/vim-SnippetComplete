@@ -21,7 +21,7 @@ ia <buffer> Bystander2 innocent local bystander
 let s:actualMatches = SnippetComplete#Abbreviations#RetrieveAbbreviations()
 call vimtap#Is(len(s:actualMatches), 4, '2 local matches and 2 bystanders')
 
-call vimtap#collections#contains(map(copy(s:actualMatches), 'v:val.word'), 'BAR', 'BAR match is lhs')
-call vimtap#collections#contains(map(copy(s:actualMatches), 'v:val.menu'), 'local BARbar', 'local rhs')
+call vimtap#collections#Contains(map(copy(s:actualMatches), 'v:val.word'), 'BAR', 'BAR match is lhs')
+call vimtap#collections#Contains(map(copy(s:actualMatches), 'v:val.menu'), 'local BARbar', 'local rhs')
 
 call vimtest#Quit()
