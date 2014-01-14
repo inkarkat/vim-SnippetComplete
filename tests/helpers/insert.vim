@@ -3,7 +3,7 @@
 " a:1	    Use a:1'th base. 
 function! Insert( base, idx, ... )
     stopinsert
-    let l:keys = 'a' . a:base . repeat("\<C-x>\<C-]>", (a:0 ? a:1 : 1)) . repeat("\<C-n>", (a:idx - 1)) . (a:idx == -1 ? "\<C-e>" : '') . (a:idx > 0 ? "\<C-y>" : '') . " \<CR>"
+    let l:keys = 'a' . a:base . repeat("\<C-x>]", (a:0 ? a:1 : 1)) . repeat("\<C-n>", (a:idx - 1)) . (a:idx == -1 ? "\<C-e>" : '') . (a:idx > 0 ? "\<C-y>" : '') . " \<CR>"
     echomsg l:keys
     execute 'normal' l:keys
 endfunction
