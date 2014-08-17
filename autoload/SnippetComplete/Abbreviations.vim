@@ -15,6 +15,8 @@
 "				etc. generator functions to support new
 "				buffer-local-only mappings.
 "   2.00.001	03-May-2012	file creation
+let s:save_cpo = &cpo
+set cpo&vim
 
 let s:filterExpr = {
 \   'none': '^\S\+$'
@@ -61,19 +63,26 @@ endfunction
 
 " All three different types of abbreviations are backed by the same query of
 " defined abbreviations. As a balance between memory and performance, let's
-" cache the abbreviations for the current buffer, so that all three queries of
-" the different abbreviation types can be handled with a single lookup, and
-" subsequent lookups in the same buffer, too. As there can be buffer-local
-" abbreviations, the cache has to be re-generated when the buffer changes.
-let s:bufnr = 0
-let s:cache = []
+" cache the abbreviations for the current buffer, one for each scope of local /
+" global / all, so that all three queries of the different abbreviation types
+" can be handled with a single lookup, and subsequent lookups in the same
+" buffer, too. As there can be buffer-local abbreviations, the cache has to be
+" re-generated when the buffer changes (expect for the global one, but let's
+" skip that special case; there's no default mapping for that, anyway).
+let s:cache = {
+\   'local' : { 'bufnr': 0, 'abbreviations': [] },
+\   'global': { 'bufnr': 0, 'abbreviations': [] },
+\   'all'   : { 'bufnr': 0, 'abbreviations': [] },
+\}
 function! s:GetAbbreviations( which, pattern )
-    if empty(s:cache) || s:bufnr != bufnr('')
-	let s:cache = SnippetComplete#Abbreviations#RetrieveAbbreviations(a:which)
-	let s:bufnr = bufnr('')
+    let l:cache = s:cache[a:which]
+    if empty(l:cache.abbreviations) || l:cache.bufnr != bufnr('')
+	let l:cache.abbreviations = SnippetComplete#Abbreviations#RetrieveAbbreviations(a:which)
+	let l:cache.bufnr = bufnr('')
     endif
-    return filter(copy(s:cache), 'v:val.word =~# ' . string(a:pattern))
+    return filter(copy(l:cache.abbreviations), 'v:val.word =~# ' . string(a:pattern))
 endfunction
+
 
 function! s:ForFullid( which )
     return s:GetAbbreviations(a:which, '^\k\+$')
@@ -105,4 +114,6 @@ function! SnippetComplete#Abbreviations#LocalNonid()
     return s:ForNonid('local')
 endfunction
 
+let &cpo = s:save_cpo
+unlet s:save_cpo
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
