@@ -5,13 +5,15 @@
 "   - CompleteHelper/Abbreviate.vim autoload script
 "   - ingo/cmdline/showmode.vim autoload script
 "   - ingo/collections.vim autoload script
+"   - ingo/record.vim autoload script
 "
-" Copyright: (C) 2010-2013 Ingo Karkat
+" Copyright: (C) 2010-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.21.009	30-May-2014	Use ingo#record#PositionAndLocation().
 "   2.12.008	18-Jun-2013	Factor out s:SetupCmdlineForBaseMessage() into
 "				the ingo-library as
 "				ingo#cmdline#showmode#OneLineTemporaryNoShowMode().
@@ -212,14 +214,6 @@ function! s:ShowMultipleBasesMessage( nextIdx, baseNum, nextBase )
     echohl None
     echon a:nextBase
 endfunction
-function! s:RecordPosition()
-    " The position record consists of the current cursor position, the buffer,
-    " window and tab page number and the buffer's current change state.
-    " As soon as you make an edit, move to another buffer or even the same
-    " buffer in another tab page or window (or as a minor side effect just close
-    " a window above the current), the position changes.
-    return getpos('.') + [bufnr(''), winnr(), tabpagenr()]
-endfunction
 function! s:FormatMatches( matchObject )
     " Shorten the snippet expansion if necessary.
     let l:menu = get(a:matchObject, 'menu', '')
@@ -242,9 +236,9 @@ let s:nextBaseIdx = 0
 let s:initialCompletePosition = []
 let s:lastCompleteEndPosition = []
 function! SnippetComplete#SnippetComplete( types )
-"****D echomsg '****' string(s:RecordPosition())
+"****D echomsg '****' string(ingo#record#PositionAndLocation(0))
     let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
-    if s:initialCompletePosition == s:RecordPosition() && l:baseNum > 1
+    if s:initialCompletePosition == ingo#record#PositionAndLocation(0) && l:baseNum > 1
 	" The Snippet complete mapping is being repeatedly executed on the same
 	" position, and we have multiple completion bases. Use the next/first
 	" base from the cached completions.
@@ -255,7 +249,7 @@ function! SnippetComplete#SnippetComplete( types )
 
 	let l:baseIdx = 0
 	let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
-	let s:initialCompletePosition = s:RecordPosition()
+	let s:initialCompletePosition = ingo#record#PositionAndLocation(0)
 	let s:initialCompletionCol = col('.')	" Note: The column is also contained in s:initialCompletePosition, but a separate variable is more expressive.
     endif
 
@@ -271,7 +265,7 @@ function! SnippetComplete#SnippetComplete( types )
 	let l:matches = sort(s:lastCompletionsByBaseCol[l:baseColumns[l:baseIdx]], 's:CompletionCompare')
 	call map(l:matches, 's:FormatMatches(v:val)')
 	call complete(l:baseColumns[l:baseIdx], l:matches)
-	let s:lastCompleteEndPosition = s:RecordPosition()
+	let s:lastCompleteEndPosition = ingo#record#PositionAndLocation(0)
 
 	if l:baseNum > 1
 	    " There are multiple bases; make subsequent invocations cycle
@@ -307,7 +301,7 @@ function! SnippetComplete#PreSnippetCompleteExpr()
     " end the completion; this may only not work when 'completeopt' contains
     " "longest" (Vim returns to what was typed or longest common string).
     let l:baseNum = len(keys(s:lastCompletionsByBaseCol))
-    return (pumvisible() || s:lastCompleteEndPosition == s:RecordPosition() && l:baseNum > 1 ? "\<C-e>" : '')
+    return (pumvisible() || s:lastCompleteEndPosition == ingo#record#PositionAndLocation(0) && l:baseNum > 1 ? "\<C-e>" : '')
 endfunction
 
 let &cpo = s:save_cpo
