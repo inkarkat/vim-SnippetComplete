@@ -6,12 +6,16 @@
 "   - SnippetComplete.vim autoload script
 "   - SnippetComplete/Abbreviations.vim autoload script
 "
-" Copyright: (C) 2010-2014 Ingo Karkat
+" Copyright: (C) 2010-2019 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.21.008	18-Jan-2019	ENH: Add (unmapped by default) <Plug>-mappings
+"                               for just [local] abbreviations; this can be
+"                               useful if there are both many snippets and
+"                               abbreviations.
 "   2.01.007	13-Aug-2012	FIX: Vim 7.0/1 need preloading of functions
 "				referenced in Funcrefs.
 "   2.00.006	05-May-2012	Rename g:SnippetComplete_Registry to
@@ -65,6 +69,8 @@ if ! exists('g:SnippetComplete_AbbreviationTypes')
     \       'needsInsertionAtOnce': 1
     \   },
     \}
+endif
+if ! exists('g:SnippetComplete_LocalAbbreviationTypes')
     let g:SnippetComplete_LocalAbbreviationTypes = deepcopy(g:SnippetComplete_AbbreviationTypes)
     let g:SnippetComplete_LocalAbbreviationTypes.fullid.generator = function('SnippetComplete#Abbreviations#LocalFullid')
     let g:SnippetComplete_LocalAbbreviationTypes.endid.generator  = function('SnippetComplete#Abbreviations#LocalEndid')
@@ -102,8 +108,10 @@ augroup END
 " use another completion base. The reset of the cursor position is done in a
 " preceding expression mapping, because it is not allowed to change the cursor
 " position from within the actual SnippetComplete#SnippetComplete() expression.
-inoremap <silent> <Plug>(SnippetComplete)      <C-r>=SnippetComplete#PreSnippetCompleteExpr()<CR><C-r>=SnippetComplete#SnippetComplete(g:SnippetComplete_RegisteredTypes)<CR>
-inoremap <silent> <Plug>(SnippetCompleteLocal) <C-r>=SnippetComplete#PreSnippetCompleteExpr()<CR><C-r>=SnippetComplete#SnippetComplete(g:SnippetComplete_LocalRegisteredTypes)<CR>
+inoremap <silent> <Plug>(SnippetCompleteAbbr)       <C-r>=SnippetComplete#PreSnippetCompleteExpr()<CR><C-r>=SnippetComplete#SnippetComplete(g:SnippetComplete_AbbreviationTypes)<CR>
+inoremap <silent> <Plug>(SnippetCompleteLocalAbbr)  <C-r>=SnippetComplete#PreSnippetCompleteExpr()<CR><C-r>=SnippetComplete#SnippetComplete(g:SnippetComplete_LocalAbbreviationTypes)<CR>
+inoremap <silent> <Plug>(SnippetComplete)           <C-r>=SnippetComplete#PreSnippetCompleteExpr()<CR><C-r>=SnippetComplete#SnippetComplete(g:SnippetComplete_RegisteredTypes)<CR>
+inoremap <silent> <Plug>(SnippetCompleteLocal)      <C-r>=SnippetComplete#PreSnippetCompleteExpr()<CR><C-r>=SnippetComplete#SnippetComplete(g:SnippetComplete_LocalRegisteredTypes)<CR>
 if ! hasmapto('<Plug>(SnippetComplete)', 'i')
     imap <C-x>] <Plug>(SnippetComplete)
 endif
