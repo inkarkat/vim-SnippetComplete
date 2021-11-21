@@ -9,3 +9,16 @@ endfunction
 function! GetSnippetCompletions()
     return SidInvoke(s:SID, 'GetSnippetCompletions(g:SnippetComplete_AbbreviationTypes)')
 endfunction
+function! IsMatches( base, expectedCompletionsByBaseCol, description )
+    1delete _
+    execute 'normal! a' . a:base . ' '
+
+    let l:completionsByBaseCol = GetSnippetCompletions()
+
+    for l:baseCol in keys(l:completionsByBaseCol)
+	call map(l:completionsByBaseCol[l:baseCol], 'v:val.word')
+	call sort(l:completionsByBaseCol[l:baseCol])
+    endfor
+    call vimtap#Is(l:completionsByBaseCol, a:expectedCompletionsByBaseCol, a:description)
+endfunction
+
