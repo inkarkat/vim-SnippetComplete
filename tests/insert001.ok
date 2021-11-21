@@ -1,0 +1,16 @@
+full-id unique: normal ccnt 
+full-id unique:|normal ccwo 
+full-id unique:|normal ccnt 
+full-id alternatives: normal ccnt 
+full-id alternatives: normal ccwo 
+full-id alternatives:|command-line interface 
+end-id unique: lalahash-hash-i 
+end-id alternative: lalahash-hash-x 
+end-id/non-id alternative: hash-hash-i 
+end-id/non-id alternative: three hashes 
+end-id/non-id alternative: bullshit 
+non-id unique: bullshit 
+non-id unique: banged coda 
+non-id unique: prefixed banged coda 
+non-id alternative: prefixed ccwo 
+
