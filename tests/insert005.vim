@@ -1,5 +1,5 @@
-" Test detection of repeat completion on completion end change. 
-" Tests the effect of s:PreSnippetCompleteExpr(). 
+" Test detection of repeat completion on completion end change.
+" Tests the effect of s:PreSnippetCompleteExpr().
 
 source helpers/abbreviations.vim
 
@@ -12,4 +12,3 @@ execute "normal apre|c\<C-x>]\<C-n>\<C-x>]\<C-y> \<CR>"
 
 call vimtest#SaveOut()
 call vimtest#Quit()
-
