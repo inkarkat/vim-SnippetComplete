@@ -1,4 +1,4 @@
-" Test straightforward insertion of abbreviations. 
+" Test straightforward insertion of abbreviations.
 
 source helpers/abbreviations.vim
 source helpers/insert.vim
@@ -25,4 +25,3 @@ call Insert('non-id alternative: pre|', 2)
 
 call vimtest#SaveOut()
 call vimtest#Quit()
-
