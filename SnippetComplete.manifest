@@ -1,4 +1,3 @@
-autoload/ingocollections.vim
 autoload/SnippetComplete.vim
 autoload/SnippetComplete/Abbreviations.vim
 plugin/SnippetComplete.vim
