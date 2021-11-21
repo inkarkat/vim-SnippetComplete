@@ -1,0 +1,12 @@
+" full-id
+ia foo long-foo
+ia g3 long-ggg
+ia _1 long-underscore-one
+" end-id
+ia #i long-hash-i
+ia ..f long-dot-dot-f
+ia $/7 long-dollar-slash-seven
+" non-id
+ia def# long-def-hash
+ia 4/7$ long-4-slash-seven-dollar
+
