@@ -93,8 +93,15 @@ For a permanent configuration, put the following commands into your |vimrc|:
 If you want to use a different mapping, map your keys to the
 <Plug>(SnippetComplete...) mapping targets _before_ sourcing the script (e.g.
 in your |vimrc|).
-For example, to use CTRL-X <Tab> as the completion trigger, define this: >
-    imap <C-x><Tab> <Plug>(SnippetComplete)
+For example, to use CTRL-X [g] <Tab> as the completion trigger, define this: >
+    imap <C-x><Tab>  <Plug>(SnippetComplete)
+    imap <C-x>g<Tab> <Plug>(SnippetCompleteLocal)
+The plugin also provides additional mappings that ignore any added snippets
+types in |g:SnippetComplete_RegisteredTypes| and instead just show
+abbreviations. You can add mappings to these if you need to distinguish
+between both: >
+    imap <C-x>[ <Plug>(SnippetCompleteAbbr)
+    imap <C-x>g[ <Plug>(SnippetCompleteLocalAbbr)
 <
 ==============================================================================
 INTEGRATION					 *SnippetComplete-integration*
@@ -133,7 +140,7 @@ To create a separate completion mapping for your type: >
 <				      *g:SnippetComplete_LocalRegisteredTypes*
 Like |g:SnippetComplete_RegisteredTypes|, but to include (preferably only
 local) snippets in the |i_CTRL-X_g]| completion mapping for buffer-local
-abbreviation https://github.com/tek/vim-argh/blob/master/autoload/argh.vim#L54 s.
+abbreviations.
 
 ==============================================================================
 LIMITATIONS					 *SnippetComplete-limitations*
@@ -154,7 +161,10 @@ IDEAS						       *SnippetComplete-ideas*
 HISTORY						     *SnippetComplete-history*
 
 2.21	RELEASEME
-*** You need to update to ingo-library (vimscript #4433) version 1.020! ***
+- ENH: Add (unmapped by default) <Plug>-mappings for just [local]
+  abbreviations; this can be useful if there are both many snippets and
+  abbreviations.
+  *** You need to update to ingo-library (vimscript #4433) version 1.020! ***
 
 2.20	03-Apr-2014
 - ENH: Add CTRL-X g] mapping variant that limits the results to buffer-local
@@ -192,7 +202,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2010-2014 Ingo Karkat
+Copyright: (C) 2010-2019 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
