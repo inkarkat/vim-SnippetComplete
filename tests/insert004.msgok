@@ -1,0 +1,26 @@
+First base.
+
+-- Snippet completion (^X]^N^P) base 1 of 2; next: pre|cc
+match 2 of 2
+
+Second base.
+
+-- Snippet completion (^X]^N^P) base 1 of 2; next: pre|cc
+match 1 of 2
+-- Snippet completion (^X]^N^P) base 2 of 2; next: cc
+match 2 of 2
+
+Cycling through to first base.
+
+-- Snippet completion (^X]^N^P) base 1 of 2; next: pre|cc
+match 1 of 2
+-- Snippet completion (^X]^N^P) base 2 of 2; next: cc
+match 1 of 2
+-- Snippet completion (^X]^N^P) base 1 of 2; next: pre|cc
+match 2 of 2
+
+Unique match, second base.
+
+-- Snippet completion (^X]^N^P) base 1 of 2; next: pre|ccn
+The only match
+-- Snippet completion (^X]^N^P) base 2 of 2; next: ccn
