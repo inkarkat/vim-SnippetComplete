@@ -9,7 +9,7 @@ call vimtap#Plan(6)
 
 ia FOO FOObar
 ia <buffer> FOO local FOObar
-let s:actualMatches = SnippetComplete#Abbreviations#RetrieveAbbreviations()
+let s:actualMatches = SnippetComplete#Abbreviations#RetrieveAbbreviations('all')
 call vimtap#Is(len(s:actualMatches), 1, 'Only one (local) match')
 call vimtap#Is(s:actualMatches[0].word, 'FOO', 'FOO match is lhs')
 call vimtap#Is(s:actualMatches[0].menu, 'local FOObar', 'local rhs')
@@ -18,10 +18,10 @@ ia Bystander1 innocent bystander
 ia <buffer> BAR local BARbar
 ia BAR BARbar
 ia <buffer> Bystander2 innocent local bystander
-let s:actualMatches = SnippetComplete#Abbreviations#RetrieveAbbreviations()
+let s:actualMatches = SnippetComplete#Abbreviations#RetrieveAbbreviations('all')
 call vimtap#Is(len(s:actualMatches), 4, '2 local matches and 2 bystanders')
 
-call vimtap#collections#Contains(map(copy(s:actualMatches), 'v:val.word'), 'BAR', 'BAR match is lhs')
-call vimtap#collections#Contains(map(copy(s:actualMatches), 'v:val.menu'), 'local BARbar', 'local rhs')
+call vimtap#Ok((index(map(copy(s:actualMatches), 'v:val.word'), 'BAR') != -1), 'BAR match is lhs')
+call vimtap#Ok((index(map(copy(s:actualMatches), 'v:val.menu'), 'local BARbar') != -1), 'local rhs')
 
 call vimtest#Quit()
