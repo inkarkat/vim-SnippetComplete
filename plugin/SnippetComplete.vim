@@ -13,9 +13,9 @@
 "
 " REVISION	DATE		REMARKS
 "   2.21.008	18-Jan-2019	ENH: Add (unmapped by default) <Plug>-mappings
-"                               for just [local] abbreviations; this can be
-"                               useful if there are both many snippets and
-"                               abbreviations.
+"				for just [local] abbreviations; this can be
+"				useful if there are both many snippets and
+"				abbreviations.
 "   2.01.007	13-Aug-2012	FIX: Vim 7.0/1 need preloading of functions
 "				referenced in Funcrefs.
 "   2.00.006	05-May-2012	Rename g:SnippetComplete_Registry to
