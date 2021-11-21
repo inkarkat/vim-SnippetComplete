@@ -12,7 +12,7 @@ function! s:IsBase( existingText, precedingText, expectedBase, expectedAbbreviat
     execute 'normal! a' . a:precedingText . a:expectedBase . ' '
 
     let l:expectedBaseCol = strlen(a:existingText) + strlen(a:precedingText) + 1
-    call vimtap#collections#contains(DetermineBaseCol(), [[a:expectedAbbreviationType, l:expectedBaseCol]], a:expectedAbbreviationType . ' ' . a:description)
+    call vimtap#collections#Contains(DetermineBaseCol(), [[a:expectedAbbreviationType, l:expectedBaseCol]], a:expectedAbbreviationType . ' ' . a:description)
 endfunction
 
 call vimtest#StartTap()
