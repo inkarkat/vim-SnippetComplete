@@ -41,7 +41,7 @@ function! SnippetComplete#Abbreviations#RetrieveAbbreviations( which )
 	    let l:match = { 'word': l:lhs, 'menu': l:rhs }
 	    call add((l:flags =~# '@' ? l:localMatches : l:globalMatches), l:match)
 	endfor
-    catch /^Vim\%((\a\+)\)\=:E688/	" catch error E688: More targets than List items
+    catch /^Vim\%((\a\+)\)\=:E688:/	" catch error E688: More targets than List items
 	" When there are no abbreviations, Vim returns "No abbreviation found".
     endtry
 
