@@ -1,4 +1,4 @@
-" Test impossible insertion of abbreviations. 
+" Test impossible insertion of abbreviations.
 
 source helpers/abbreviations.vim
 source helpers/insert.vim
@@ -15,4 +15,3 @@ call Insert('non-id none: pre|XX', 0)
 
 call vimtest#SaveOut()
 call vimtest#Quit()
-
