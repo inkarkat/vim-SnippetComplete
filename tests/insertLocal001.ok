@@ -1,0 +1,11 @@
+full-id unique local: local cclo 
+full-id unique local overrides global: local ccnt 
+full-id unique global: normal ccwo 
+full-id alternatives: local cclo 
+full-id alternatives: local ccnt 
+full-id alternatives: normal ccwo 
+local full-id unique local: local cclo 
+local full-id unique local overrides global: local ccnt 
+local full-id unique no global: ccw 
+full-id unique global: normal ccwo 
+
