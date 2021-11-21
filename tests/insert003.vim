@@ -1,6 +1,6 @@
-" Test insertion of abbreviations that depend on start-of-insert. 
+" Test insertion of abbreviations that depend on start-of-insert.
 " Tests that the start-of-insert position is captured correctly and considered
-" when matching abbrevations with the determined base. 
+" when matching abbrevations with the determined base.
 
 source helpers/abbreviations.vim
 source helpers/insert.vim
@@ -24,4 +24,3 @@ call InsertAfterPrevious('non-id alternative: previous', 'pre|cc', 2)
 
 call vimtest#SaveOut()
 call vimtest#Quit()
-
