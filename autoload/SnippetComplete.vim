@@ -7,7 +7,7 @@
 "   - ingo/collections.vim autoload script
 "   - ingo/record.vim autoload script
 "
-" Copyright: (C) 2010-2014 Ingo Karkat
+" Copyright: (C) 2010-2019 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
@@ -56,9 +56,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 function! s:TypeCompare( c1, c2 )
-    let l:p1 = a:c1[1].priority
-    let l:p2 = a:c2[1].priority
-    return (l:p1 ==# l:p2 ? 0 : l:p1 ># l:p2 ? 1 : -1)
+    return ingo#collections#PrioritySort(a:c1[1], a:c2[1])
 endfunction
 function! s:GetSortedTypes( types )
     return map(sort(items(a:types), 's:TypeCompare'), 'v:val[0]')
