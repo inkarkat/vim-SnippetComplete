@@ -172,7 +172,7 @@ below).
 ==============================================================================
 HISTORY						     *SnippetComplete-history*
 
-2.21	RELEASEME
+2.21	14-Nov-2024
 - ENH: Add (unmapped by default) <Plug>-mappings for just [local]
   abbreviations; this can be useful if there are both many snippets and
   abbreviations.
@@ -214,7 +214,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2010-2022 Ingo Karkat
+Copyright: (C) 2010-2024 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>

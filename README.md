@@ -163,7 +163,7 @@ below).
 HISTORY
 ------------------------------------------------------------------------------
 
-##### 2.21    RELEASEME
+##### 2.21    14-Nov-2024
 - ENH: Add (unmapped by default) &lt;Plug&gt;-mappings for just [local]
   abbreviations; this can be useful if there are both many snippets and
   abbreviations.
@@ -209,7 +209,7 @@ __THIS PLUGIN NOW REQUIRES THE CompleteHelper PLUGIN ([vimscript #3914](http://w
 - Started development.
 
 ------------------------------------------------------------------------------
-Copyright: (C) 2010-2022 Ingo Karkat -
+Copyright: (C) 2010-2024 Ingo Karkat -
 The [VIM LICENSE](http://vimdoc.sourceforge.net/htmldoc/uganda.html#license) applies to this plugin.
 
 Maintainer:     Ingo Karkat &lt;ingo@karkat.de&gt;
