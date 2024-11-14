@@ -68,10 +68,16 @@ CTRL-X g]		Find matches for buffer-local abbreviations that start
 ==============================================================================
 INSTALLATION					*SnippetComplete-installation*
 
-This script is packaged as a |vimball|. If you have the "gunzip" decompressor
-in your PATH, simply edit the *.vmb.gz package in Vim; otherwise, decompress
-the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
-vimball or via the |:UseVimball| command. >
+The code is hosted in a Git repo at
+    https://github.com/inkarkat/vim-SnippetComplete
+You can use your favorite plugin manager, or "git clone" into a directory used
+for Vim |packages|. Releases are on the "stable" branch, the latest unstable
+development snapshot on "master".
+
+This script is also packaged as a |vimball|. If you have the "gunzip"
+decompressor in your PATH, simply edit the *.vmb.gz package in Vim; otherwise,
+decompress the archive first, e.g. using WinZip. Inside Vim, install by
+sourcing the vimball or via the |:UseVimball| command. >
     vim SnippetComplete*.vmb.gz
     :so %
 To uninstall, use the |:RmVimball| command.
@@ -157,10 +163,16 @@ TODO							*SnippetComplete-todo*
 
 IDEAS						       *SnippetComplete-ideas*
 
+CONTRIBUTING					  *SnippetComplete-contribute*
+
+Report any bugs, send patches, or suggest features via the issue tracker at
+https://github.com/inkarkat/vim-SnippetComplete/issues or email (address
+below).
+
 ==============================================================================
 HISTORY						     *SnippetComplete-history*
 
-2.21	RELEASEME
+2.21	14-Nov-2024
 - ENH: Add (unmapped by default) <Plug>-mappings for just [local]
   abbreviations; this can be useful if there are both many snippets and
   abbreviations.
@@ -202,7 +214,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2010-2019 Ingo Karkat
+Copyright: (C) 2010-2024 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
