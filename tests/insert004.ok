@@ -10,9 +10,9 @@ pre|normal ccwo
 prefixed ccnt 
 
 set completeopt=longest
-pre|normal ccwo 
-prefixed ccwo 
-pre|normal ccwo 
+pre|normal ccnt 
+prefixed ccnt 
+pre|normal ccnt 
 pre|normal ccnt 
 
 set completeopt=menu
@@ -28,8 +28,8 @@ pre|normal ccwo
 prefixed ccnt 
 
 set completeopt=longest,menuone
-pre|normal ccwo 
-prefixed ccwo 
-pre|normal ccwo 
+pre|normal ccnt 
+prefixed ccnt 
+pre|normal ccnt 
 pre|normal ccnt 
 

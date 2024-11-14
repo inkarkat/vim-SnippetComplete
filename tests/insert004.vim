@@ -1,5 +1,6 @@
 " Test use of alternative completion bases for abbreviations.
 
+call vimtest#SkipAndQuitIf(v:version < 900 || v:version == 900 && ! has('patch567'), 'Need complete() support for completeopt=longest')
 source helpers/abbreviations.vim
 source helpers/insert.vim
 
